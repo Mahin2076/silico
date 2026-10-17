@@ -5,6 +5,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::time::Duration;
 
+#[derive(Debug)]
+pub struct BudgetExhausted(pub &'static str);
+impl std::fmt::Display for BudgetExhausted {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+impl std::error::Error for BudgetExhausted {}
+
 #[derive(Clone)]
 pub struct CrusoeClient {
     http: reqwest::Client,
@@ -77,14 +86,14 @@ impl CrusoeClient {
             );
         }
         if usage.requests >= 48 {
-            bail!("Experiment request budget exhausted (48)");
+            return Err(BudgetExhausted("Experiment request budget exhausted (48)").into());
         }
         // UTF-8 bytes conservatively bound ordinary text tokens; reserve output even on failure.
         // This is a local admission budget, not an invoice or a provider tokenizer.
         let user = serde_json::to_string(data)?;
         let reservation = (system.len() + user.len() + 256) as u64 + 4096;
         if usage.reserved_tokens + reservation > 180_000 {
-            bail!("Experiment token reservation budget exhausted");
+            return Err(BudgetExhausted("Experiment token reservation budget exhausted").into());
         }
         usage.reserved_tokens += reservation;
         usage.requests += 1;

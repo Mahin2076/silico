@@ -38,7 +38,10 @@ validate synthetic probabilities. OpenShell remains an optional P2 CLI transport
 
 `Run.research` stores the original review hash, objection, failed check IDs, query,
 and source packet (URLs, excerpts, publication dates when available, retrieval
-time). The second request includes that packet and the original objection; its
+time). One bounded Crusoe call writes a cited assessment and explicit limitations;
+unknown citation IDs or missing assessments block the run. This call uses P1's
+existing request/token budget. The second request includes the assessment,
+source packet and original objection; its
 new request hash binds both. Scenario results and the plan hash stay unchanged.
 The map shows the objection, search, sources and recheck verdict. Receipts and
 verifier-input exports retain the evidence. Historical searches, unavailable keys,
@@ -76,7 +79,7 @@ P1 permits at most two repair rounds. Stale identity fields, missing/duplicate c
 
 `CrusoeClient::new(base, key, model)` and `json(system, &serde_json::Value, &mut Usage)` return parsed JSON. `from_env()` uses `CRUSOE_API_KEY`, `CRUSOE_MODEL`, and optional `CRUSOE_BASE_URL`. Native P2 uses its own bounded Crusoe transport and an explicit Nemotron model ID. No provider/model fallback occurs. Requests are batched; the new experiment path does not use legacy polls or their partial-coverage thresholds.
 
-P1 limits each run to 48 inference requests, 180,000 reserved text/output tokens, 300 seconds, and two repairs. Reservations conservatively use input UTF-8 bytes plus protocol overhead and 4,096 output tokens per request; they include failed attempts and are an admission estimate, not billing totals. Provider-reported tokens and missing-usage counts are recorded separately. The native verifier has a separate budget: at most three reviews, one model call per review, 128 KiB request input, 4,096 output tokens per call, a 35-second deadline including its queue, and two concurrent calls across the service. These calls are additional to P1's 48-request/180,000-token reservation budget; each explicitly started execution attempt remains capped at 300 seconds. Native review receipts record call counts and elapsed time; P1 token totals do not include verifier tokens. The UI request count includes both. The legacy HTTP override has a 45-second deadline per review. Server concurrency is two runs. No keys enter receipts.
+P1 limits each run to 48 inference requests, 180,000 reserved text/output tokens, 300 seconds, and two repairs. Exhausted request or reservation budgets stop immediately without spending repair rounds on calls that cannot run. Simulation prompts send the current scenario once and omit the other scenarios from repeated context, while receipts retain the full frozen plan. Reservations conservatively use input UTF-8 bytes plus protocol overhead and 4,096 output tokens per request; they include failed attempts and are an admission estimate, not billing totals. Provider-reported tokens and missing-usage counts are recorded separately. The native verifier has a separate budget: at most three reviews, one model call per review, 128 KiB request input, 4,096 output tokens per call, a 35-second deadline including its queue, and two concurrent calls across the service. These calls are additional to P1's 48-request/180,000-token reservation budget; each explicitly started execution attempt remains capped at 300 seconds. Native review receipts record call counts and elapsed time; P1 token totals do not include verifier tokens. The UI request count includes both. The legacy HTTP override has a 45-second deadline per review. Server concurrency is two runs. No keys enter receipts.
 
 ## Local API
 
@@ -101,3 +104,16 @@ node --test frontend/tests/*.test.mjs
 ```
 
 Tests use loopback mock inference and verifier servers, never live provider keys. They cover full planning/execution/receipt, idempotency, workspace isolation, weighted arithmetic, missing and duplicate archetypes, fixed-context checks, missing-scenario repair, absent verifier, malformed/stale/contradictory verdicts, request/token/repair budgets, cancellation, and restart behavior.
+
+### Assessment transport recovery
+
+When a source search succeeds but the cited-assessment call fails, the saved run
+can be resumed with `POST /experiments/:id/verify`. The city-map retry button
+shows **Retry assessment & verification** for eligible runs. The claim is atomic:
+concurrent retries cannot launch duplicate work. It reuses the frozen results and
+exact saved source packet, checks their identity, and never repeats the search.
+At most two assessment attempts are allowed, both charged to the original
+48-request / 180,000-token admission budget. A missing or invalid assessment
+cannot be submitted as completed evidence. The normal three-review limit and
+independent completion gates still apply. The retry receives a bounded 300-second
+deadline; it does not reset request, token, search, repair, or review counters.

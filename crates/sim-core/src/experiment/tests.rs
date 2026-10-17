@@ -788,12 +788,24 @@ async fn research_case(kind: &str, repeat: bool) -> (Service, Run, usize) {
     let search_count = Arc::new(AtomicUsize::new(0));
     let count = search_count.clone();
     let empty = kind == "empty";
+    let bad_citation = kind == "invalid_assessment";
+    let retry_once = kind == "retry_assessment";
+    let assessment_calls = Arc::new(AtomicUsize::new(0));
     let (url,task)=serve(axum::Router::new().route("/search",axum::routing::post(move |axum::Json(body):axum::Json<Value>| {
         count.fetch_add(1,Ordering::SeqCst);
         assert!(body["query"].as_str().unwrap().contains("offer assumptions"));
         async move {axum::Json(json!({"results":{"web":if empty {json!([])} else {json!([{"title":"Offer evidence","url":"https://example.org/source","description":"Published evidence about the stated assumptions","page_age":"2026-10-16"}])}}}))}
-    }))).await;
-    let mut s = service("http://localhost:1/v1".into(), None);
+    })).route("/v1/chat/completions", axum::routing::post(move |axum::Json(body):axum::Json<Value>| {
+        let attempt = assessment_calls.fetch_add(1,Ordering::SeqCst);
+        async move {
+        if retry_once && attempt == 0 { return (axum::http::StatusCode::BAD_GATEWAY, axum::Json(json!({"error":"temporary fixture failure"}))); }
+        let input:Value=serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
+        assert!(input["objection"].as_str().unwrap().contains("missing"));
+        assert_eq!(input["sources"][0]["id"],"web-1");
+        let id=if bad_citation {"web-99"} else {"web-1"};
+        (axum::http::StatusCode::OK, axum::Json(json!({"choices":[{"message":{"content":json!({"assessment":format!("Evidence addresses the assumptions [{id}], without validating simulated demand."),"source_ids":[id],"limitations":["Software fixture only; no observed purchases."]}).to_string()}}]})))
+    }}))).await;
+    let mut s = service(format!("{url}/v1"), None);
     let mut r = native_fixture();
     r.inject_missing = false;
     s.store.insert(&r).unwrap();
@@ -811,6 +823,30 @@ async fn research_case(kind: &str, repeat: bool) -> (Service, Run, usize) {
         )));
     }
     s.verify_saved(&mut r).await.unwrap();
+    if retry_once {
+        assert_eq!(r.status, "blocked");
+        assert_eq!(r.research.as_ref().unwrap().assessment_attempts, 1);
+        assert!(
+            super::p2::request(&r).is_err(),
+            "Missing assessment cannot be reviewed as complete"
+        );
+        let results = hash(&r.results);
+        let sources = hash(&r.research.as_ref().unwrap().web);
+        let mut stale = r.clone();
+        stale.research.as_mut().unwrap().query.query = "Changed question".into();
+        assert!(!super::p2::can_retry_assessment(&stale));
+        r = s
+            .store
+            .claim_verification(&r.workspace, &r.run_id)
+            .unwrap()
+            .unwrap();
+        assert!(s.store.claim_verification(&r.workspace, &r.run_id).is_err());
+        s.verify_saved(&mut r).await.unwrap();
+        assert_eq!(hash(&r.results), results);
+        assert_eq!(hash(&r.research.as_ref().unwrap().web), sources);
+        assert_eq!(r.research.as_ref().unwrap().assessment_attempts, 2);
+        assert!(!super::p2::can_retry_assessment(&r));
+    }
     task.abort();
     (s, r, search_count.load(Ordering::SeqCst))
 }
@@ -829,6 +865,15 @@ async fn research_followup_preserves_simulation_and_binds_sources_to_recheck() {
     );
     assert_ne!(before.decision.request_hash, after.decision.request_hash);
     assert!(after.request.web_research.is_some());
+    assert!(after
+        .request
+        .conclusions
+        .iter()
+        .any(|c| c.contains("[web-1]")));
+    assert_eq!(
+        r.usage.requests, 1,
+        "Only the synthesis call runs after the saved simulation"
+    );
     assert_eq!(
         after.decision.verdict,
         crate::verifier::Verdict::Pass,
@@ -872,16 +917,63 @@ async fn research_followup_preserves_simulation_and_binds_sources_to_recheck() {
 }
 #[tokio::test]
 async fn research_failures_and_loops_cannot_pass_or_repeat_search() {
-    for kind in ["empty", "missing"] {
+    for kind in ["empty", "missing", "invalid_assessment"] {
         let (_, r, calls) = research_case(kind, false).await;
         assert_eq!(r.status, "blocked");
         assert!(r.research.unwrap().error.is_some());
         assert_eq!(r.p2_reviews.len(), 1);
-        assert_eq!(calls, if kind == "empty" { 1 } else { 0 });
+        assert_eq!(calls, if kind == "missing" { 0 } else { 1 });
     }
     let (_, r, calls) = research_case("ready", true).await;
     assert_eq!(r.status, "blocked");
     assert_eq!(calls, 1);
     assert_eq!(r.p2_reviews.len(), 2);
     assert!(r.error.unwrap().contains("One-search budget exhausted"));
+}
+
+#[test]
+fn simulation_prompt_omits_other_scenarios_without_changing_frozen_evidence() {
+    let original = json!({"seed":42,"as_of_date":"2026-10-17","news":[],"evidence_policy":"Explicit assumptions","scenarios":[{"price":8},{"price":12}]});
+    let before = hash(&original);
+    let context = super::runner::simulation_context(&original);
+    assert!(context.get("scenarios").is_none());
+    for key in ["seed", "as_of_date", "news", "evidence_policy"] {
+        assert_eq!(context[key], original[key]);
+    }
+    assert_eq!(hash(&original), before);
+}
+#[tokio::test]
+async fn exhausted_admission_budget_stops_without_repair_loops_or_dispatch() {
+    for tokens in [true, false] {
+        let s = service("http://127.0.0.1:1/v1".into(), None);
+        let mut r = fixture();
+        r.mode = "live".into();
+        if tokens {
+            r.usage.reserved_tokens = 180_000;
+        } else {
+            r.usage.requests = 48;
+        }
+        s.store.insert(&r).unwrap();
+        let error = s.execute(&mut r).await.unwrap_err();
+        assert!(error
+            .downcast_ref::<crate::crusoe::BudgetExhausted>()
+            .is_some());
+        assert_eq!(r.round, 0);
+        assert!(!r.events.iter().any(|e| e.stage == "repairing"));
+        assert_eq!(r.usage.requests, if tokens { 0 } else { 48 });
+    }
+}
+
+#[tokio::test]
+async fn assessment_retry_reuses_sources_and_results_without_repeating_search() {
+    let (_, r, searches) = research_case("retry_assessment", false).await;
+    assert_eq!(searches, 1);
+    assert_eq!(r.usage.requests, 2);
+    assert_eq!(r.round, 1);
+    assert_eq!(r.p2_reviews.len(), 2);
+    assert!(r.research.as_ref().unwrap().assessment.is_some());
+    assert_ne!(
+        r.status, "complete",
+        "Mock review must still not complete a live run"
+    );
 }

@@ -221,7 +221,15 @@ impl<T: VerifierTransport> Verifier<T> {
             Err(_) => return unavailable(request, decision, started, "malformed_review"),
         };
         if let Err(code) = validate_review(request, &input, &review) {
-            return unavailable(request, decision, started, code);
+            let mut rejected = unavailable(request, decision, started, code);
+            if code == "invalid_review_evidence" {
+                let diagnostics = evidence_diagnostics(&input, &review);
+                rejected.summary.push_str(&format!(
+                    " Invalid evidence fields: {}.",
+                    diagnostics.join("; ")
+                ));
+            }
+            return rejected;
         }
         decision.verdict = review.verdict;
         decision.summary = review.summary;
@@ -750,6 +758,45 @@ fn finish_unreviewed(request: &VerificationRequest, decision: &mut VerificationD
             vec![],
         ));
     }
+}
+
+// Keep provider output rejected, but identify its broken field without logging
+// raw model text, source snippets, credentials, or user data.
+fn evidence_diagnostics(input: &Value, review: &ModelReview) -> Vec<String> {
+    review
+        .findings
+        .iter()
+        .enumerate()
+        .filter_map(|(i, finding)| {
+            let mut reasons = vec![];
+            if finding.summary.trim().is_empty() {
+                reasons.push("empty summary");
+            }
+            if finding.summary.len() > 2000 {
+                reasons.push("summary exceeds 2000 bytes");
+            }
+            if finding.status == CheckStatus::NotReviewed {
+                reasons.push("not_reviewed status");
+            }
+            if finding.evidence.len() > 16 {
+                reasons.push("too many references");
+            }
+            if finding.evidence.iter().any(|e| !evidence_valid(input, e)) {
+                reasons.push("nonexistent or disallowed pointer");
+            }
+            if finding.status == CheckStatus::Pass
+                && (finding.evidence.is_empty()
+                    || finding
+                        .evidence
+                        .iter()
+                        .any(|e| !input.pointer(&e.pointer).is_some_and(meaningful)))
+            {
+                reasons.push("pass lacks meaningful evidence");
+            }
+            (!reasons.is_empty()).then(|| format!("finding {i}: {}", reasons.join(", ")))
+        })
+        .take(8)
+        .collect()
 }
 
 fn validate_review(

@@ -25,9 +25,15 @@ export function renderResearch(host, run) {
   const r = run.research, doc = host.ownerDocument;
   const node = (tag, text) => { const e = doc.createElement(tag); e.textContent = text; return e; };
   host.append(node('h3', 'Evidence follow-up · You.com'), node('p', `Objection: ${r.objection}`), node('p', `Search: ${r.query.query}`), node('p', researchOutcome(run)));
+  if (r.assessment) {
+    host.append(node('h4', 'Assessment submitted for review'), node('p', r.assessment.assessment));
+    const limits = node('ul', '');
+    r.assessment.limitations.forEach(text => limits.append(node('li', text)));
+    host.append(limits);
+  }
   for (const source of r.web?.sources || []) {
     const details = node('details', ''), summary = node('summary', ''), url = sourceUrl(source.url);
-    const title = node(url ? 'a' : 'span', source.title);
+    const title = node(url ? 'a' : 'span', `[${source.id}] ${source.title}`);
     if (url) { title.href = url; title.target = '_blank'; title.rel = 'noopener noreferrer'; }
     summary.append(title); details.append(summary);
     details.append(node('small', `${source.publication_date || 'Undated · background only'} · retrieved ${r.web.fetched_at}`));

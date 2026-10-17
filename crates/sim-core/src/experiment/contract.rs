@@ -113,14 +113,30 @@ pub struct Event {
     pub message: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResearchAssessment {
+    pub assessment: String,
+    pub source_ids: Vec<String>,
+    pub limitations: Vec<String>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ResearchFollowup {
     pub trigger_request_hash: String,
     pub check_ids: Vec<String>,
     pub objection: String,
     pub query: crate::verifier::ResearchQuery,
     pub web: Option<crate::verifier::WebResearch>,
+    #[serde(default)]
+    pub assessment: Option<ResearchAssessment>,
+    #[serde(default = "legacy_assessment_attempts")]
+    pub assessment_attempts: u32,
     pub error: Option<String>,
 }
+// Older research receipts made at most one assessment request.
+fn legacy_assessment_attempts() -> u32 {
+    1
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Run {
     pub run_id: String,

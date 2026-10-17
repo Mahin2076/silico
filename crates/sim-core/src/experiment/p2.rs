@@ -27,6 +27,38 @@ fn check_id(id: &str) -> String {
 }
 
 pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
+    build_request(run, true)
+}
+
+// Preflight for writing an assessment only; never used to authorize completion.
+pub(super) fn request_for_assessment(run: &p1::Run) -> Result<p2::VerificationRequest> {
+    let research = run.research.as_ref().context("Missing saved research")?;
+    let plan = run.plan.as_ref().context("Missing plan")?;
+    ensure!(research.assessment.is_none(), "Assessment already exists");
+    ensure!(
+        research
+            .web
+            .as_ref()
+            .is_some_and(|web| web.is_ready(&plan.as_of_date)),
+        "Saved research is not ready"
+    );
+    build_request(run, false)
+}
+
+pub(super) fn can_retry_assessment(run: &p1::Run) -> bool {
+    run.mode == "live"
+        && run.status == "blocked"
+        && run.p2_reviews.len() < 3
+        && run.usage.requests < 48
+        && run.usage.reserved_tokens < 180_000
+        && run
+            .research
+            .as_ref()
+            .is_some_and(|r| r.error.is_some() && r.assessment_attempts < 2)
+        && request_for_assessment(run).is_ok()
+}
+
+fn build_request(run: &p1::Run, require_assessment: bool) -> Result<p2::VerificationRequest> {
     let plan = run.plan.as_ref().context("Plan is not ready")?;
     ensure!(
         hash(&run.plan) == run.plan_hash,
@@ -126,6 +158,24 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
             "Research sources belong to a different query"
         );
         conclusions.push(format!("Original review deficiency to resolve using the attached research: {}. Research question: {}", research.objection, research.query.query));
+        if let Some(assessment) = &research.assessment {
+            super::runner::validate_assessment(assessment, web)?;
+            conclusions.push(format!(
+                "External evidence assessment: {}",
+                assessment.assessment
+            ));
+            conclusions.extend(
+                assessment
+                    .limitations
+                    .iter()
+                    .map(|limitation| format!("Research limitation: {limitation}")),
+            );
+        } else {
+            ensure!(
+                !require_assessment,
+                "Research assessment is missing; completion refused"
+            );
+        }
     }
     Ok(p2::VerificationRequest {
         schema_version: p2::SCHEMA_VERSION,

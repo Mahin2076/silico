@@ -3,7 +3,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 pub const SCHEMA_VERSION: u32 = 1;
-pub const PROMPT_VERSION: &str = "silico-p2-verifier-v4-research";
+pub const PROMPT_VERSION: &str = "silico-p2-verifier-v6-research-assessment";
 pub const MAX_REPAIR_ROUND: u8 = 2;
 pub const LOCAL_CHECKS: &[&str] = &[
     "p2.input_integrity",

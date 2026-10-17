@@ -34,6 +34,7 @@ impl Store {
                 "repairing",
                 "verifying",
                 "researching",
+                "synthesizing",
             ]
             .contains(&run.status.as_str())
             {
@@ -100,7 +101,7 @@ impl Store {
         let Some(body) = body else { return Ok(None) };
         let mut run: Run = serde_json::from_str(&body)?;
         ensure!(
-            super::p2::can_retry(&run),
+            super::p2::can_retry(&run) || super::p2::can_retry_assessment(&run),
             "This run is not eligible for another verification attempt"
         );
         ensure!(
@@ -110,13 +111,22 @@ impl Store {
                     .all(|c| c.status == "pass"),
             "Saved results failed integrity checks"
         );
-        super::p2::request(&run)?;
+        let assessment_retry = super::p2::can_retry_assessment(&run);
+        if assessment_retry {
+            super::p2::request_for_assessment(&run)?;
+        } else {
+            super::p2::request(&run)?;
+        }
         run.status = "verifying".into();
         run.error = None;
         run.verifier = None;
         run.event(
             "verifying",
-            "Verification retry requested; reusing the original simulation results",
+            if assessment_retry {
+                "Assessment retry requested; reusing original simulation results and saved sources"
+            } else {
+                "Verification retry requested; reusing the original simulation results"
+            },
         );
         db.execute(
             "UPDATE experiment_runs SET body=? WHERE workspace=? AND id=?",
@@ -142,6 +152,7 @@ impl Store {
             "repairing",
             "verifying",
             "researching",
+            "synthesizing",
         ]
         .contains(&r.status.as_str())
         {
