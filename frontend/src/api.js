@@ -1,3 +1,4 @@
+import { loadResidents } from "./resident-loader.js";
 // ─────────────────────────────────────────────────────────────────────────
 // Thin client over the SF Digital Twin backend (see INTEGRATION.md).
 // Every call has a timeout and throws a readable Error on non-2xx.
@@ -96,19 +97,9 @@ export const createSimulation = (overrides = {}) =>
 // `cap` is only a runaway guard; the real bound is the branch's total_matched,
 // which we learn from the first page — so we never silently drop agents.
 export async function getAllAgents(branchId, onProgress, cap = 50000) {
-  const limit = 1000;
-  let offset = 0;
-  const out = [];
-  while (offset < cap) {
-    const page = await req(`/branches/${encodeURIComponent(branchId)}/agents?limit=${limit}&offset=${offset}`, { timeout: 30000 });
-    const batch = page.agents || [];
-    out.push(...batch);
-    const total = page.total_matched ?? out.length;
-    offset += limit;
-    if (onProgress) onProgress(out.length, total);
-    if (out.length >= total || batch.length < limit) break;
-  }
-  return out;
+  return loadResidents((offset, limit) =>
+    req(`/branches/${encodeURIComponent(branchId)}/agents?limit=${limit}&offset=${offset}`, { timeout: 30000 }),
+    onProgress, cap);
 }
 
 // "Trigger the branching": clone main, optionally broadcast an event, run a

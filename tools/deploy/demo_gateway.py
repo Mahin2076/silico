@@ -3,6 +3,7 @@ Run with --ledger outside the checkout. Only tunnel this port, never port 8086.
 """
 import argparse
 import http.client
+import gzip
 import json
 import re
 import sqlite3
@@ -40,9 +41,15 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_):
         pass  # Never log bodies, headers, or keys.
     def reply(self, status, data):
-        raw = json.dumps(data).encode()
+        raw = json.dumps(data, separators=(",", ":")).encode()
+        compressed = len(raw) > 2048 and "gzip" in self.headers.get("Accept-Encoding", "").lower()
+        if compressed:
+            raw = gzip.compress(raw, compresslevel=5)
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
+        self.send_header('Vary', 'Accept-Encoding')
+        if compressed:
+            self.send_header('Content-Encoding', 'gzip')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type,X-Simtra-Workspace,ngrok-skip-browser-warning')
         self.send_header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')

@@ -528,7 +528,7 @@ async function boot() {
   // A brand-new workspace gets example surveys and events so it never opens empty.
   if (isFreshWorkspace() && !api.isDemo) {
     setStatusLoading("loading example surveys…");
-    try { await api.seedWorkspace(); } catch (e) { console.warn("workspace seeding skipped:", e); }
+    api.seedWorkspace().catch(e => console.warn("workspace seeding skipped:", e));
   }
 
   // Load the city catalog first (best-effort). If it fails we keep the existing
@@ -594,6 +594,7 @@ async function loadCity(city, { filters = state.filters, preserveOnError = false
   state.mainBranch = null;
   refreshFeedPanel();              // the feed follows the city; branch arrives after boot
   show(els.boot); setBoot(0.06);
+  $("geo-status").textContent = `Loading ${city.display} residents…`;
   try {
     const sim = await api.createSimulation({
       city: city.slug,
@@ -605,6 +606,7 @@ async function loadCity(city, { filters = state.filters, preserveOnError = false
     setBoot(0.2);
     const agents = await api.getAllAgents(sim.main_branch, (loaded, total) => {
       setBoot(0.2 + 0.77 * (total ? loaded / total : 0));
+      $("geo-status").textContent = `Loading residents · ${loaded.toLocaleString()} / ${total.toLocaleString()}`;
     });
     if (!agents.length) throw new Error("no agents returned");
     state.rawResidents = agents;
