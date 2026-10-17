@@ -839,6 +839,12 @@ fn validate_review(
         return Err("invalid_repair_request");
     }
     for repair in &review.repair_requests {
+        if repair.action == RepairAction::ResearchEvidence
+            && (review.repair_requests.len() != 1
+                || ResearchQuery::new(repair.reason.clone(), vec![]).is_err())
+        {
+            return Err("invalid_repair_request");
+        }
         if !id_valid(&repair.id)
             || repair.reason.trim().is_empty()
             || repair.reason.len() > 2000

@@ -14,6 +14,7 @@ pub(super) struct Service {
     pub cities: Arc<HashMap<String, Arc<CityRuntime>>>,
     pub store: Store,
     pub client: CrusoeClient,
+    pub research_client: Option<crate::verifier::YouSearchClient>,
     pub p2: Option<crate::verifier::Verifier<super::p2::Transport>>,
     pub verifier_url: Option<String>,
     pub verifier_token: Option<String>,
@@ -120,6 +121,16 @@ impl Service {
                     self.save(r)?;
                     return Ok(());
                 }
+                if v.verdict == "repair"
+                    && v.repair_requests.len() == 1
+                    && v.repair_requests[0].action == "research_evidence"
+                {
+                    if !self.research(r).await? {
+                        return Ok(());
+                    }
+                    targets.clear();
+                    continue;
+                }
                 if v.verdict == "blocked"
                     || v.repair_requests
                         .iter()
@@ -154,6 +165,84 @@ impl Service {
             );
             self.save(r)?;
         }
+    }
+    async fn research(&self, r: &mut Run) -> Result<bool> {
+        ensure!(
+            r.mode == "live" && self.p2.is_some(),
+            "Research requires native live verification"
+        );
+        ensure!(
+            r.round < 2 && r.p2_reviews.len() < 3,
+            "Repair or review budget exhausted; research refused"
+        );
+        if r.research.is_some() {
+            r.status = "blocked".into();
+            r.error = Some("Research did not resolve the evidence gap. One-search budget exhausted; no repeated search was made.".into());
+            r.event("blocked", r.error.clone().unwrap());
+            self.save(r)?;
+            return Ok(false);
+        }
+        let review = r
+            .p2_reviews
+            .last()
+            .context("Research needs a validated native review")?;
+        let repair = review
+            .decision
+            .repair_requests
+            .first()
+            .context("Missing research request")?;
+        ensure!(
+            review.decision.receipt.error_code.is_none()
+                && review.decision.verdict == crate::verifier::Verdict::Repair
+                && repair.action == crate::verifier::RepairAction::ResearchEvidence,
+            "Research request is not validated"
+        );
+        let query = crate::verifier::ResearchQuery::new(repair.reason.clone(), vec![])?;
+        r.research = Some(ResearchFollowup {
+            trigger_request_hash: review.decision.request_hash.clone(),
+            check_ids: repair.check_ids.clone(),
+            objection: review.decision.summary.clone(),
+            query: query.clone(),
+            web: None,
+            error: None,
+        });
+        r.round += 1;
+        r.status = "researching".into();
+        r.event(
+            "researching",
+            format!("Verifier requested You.com evidence: {}", query.query),
+        );
+        self.save(r)?; // Persist the attempt and check cancellation before spending.
+        let Some(client) = &self.research_client else {
+            let message = "You.com research is unavailable. Configure YOU_API_KEY on the server and start a new run.";
+            r.research.as_mut().unwrap().error = Some(message.into());
+            r.status = "blocked".into();
+            r.error = Some(message.into());
+            r.event("blocked", message);
+            self.save(r)?;
+            return Ok(false);
+        };
+        let web = client
+            .search(&query, &r.plan.as_ref().unwrap().as_of_date)
+            .await;
+        let ready = web.status == "ready" && !web.sources.is_empty() && web.error_code.is_none();
+        let count = web.sources.len();
+        let message = format!(
+            "You.com research unresolved: {}",
+            web.error_code.as_deref().unwrap_or(&web.status)
+        );
+        r.research.as_mut().unwrap().web = Some(web);
+        if !ready {
+            r.research.as_mut().unwrap().error = Some(message.clone());
+            r.status = "blocked".into();
+            r.error = Some(message.clone());
+            r.event("blocked", message);
+            self.save(r)?;
+            return Ok(false);
+        }
+        r.event("researching", format!("Saved {count} source records with retrieval timestamps; returning the original objection and evidence to Nemotron."));
+        self.save(r)?;
+        Ok(true)
     }
     async fn plan(&self, r: &mut Run) -> Result<()> {
         let rt = self.cities.get(&r.city).context("City unavailable")?;

@@ -29,8 +29,29 @@ clarifications stop for user input. At most two repair rounds are allowed.
 P2's detailed checks/evidence remain in the receipt; P1's existing presentation
 rolls their verdict into its semantic gate.
 
-You.com research and OpenShell remain available in the P2 CLI. The map workflow
-currently uses direct Crusoe verification of its frozen simulation evidence.
+The map workflow uses direct Crusoe verification. A validated native
+`research_evidence` repair now triggers one You.com search, then another Nemotron
+review. Set `YOU_API_KEY` on the backend. The repair reason is a bounded search
+question (3–600 bytes); research requests must stand alone and refer to failed
+checks. Search cannot repair missing arithmetic, change scenario assumptions, or
+validate synthetic probabilities. OpenShell remains an optional P2 CLI transport.
+
+`Run.research` stores the original review hash, objection, failed check IDs, query,
+and source packet (URLs, excerpts, publication dates when available, retrieval
+time). The second request includes that packet and the original objection; its
+new request hash binds both. Scenario results and the plan hash stay unchanged.
+The map shows the objection, search, sources and recheck verdict. Receipts and
+verifier-input exports retain the evidence. Historical searches, unavailable keys,
+empty results and invalid evidence cannot complete a run. One search is allowed
+per run, with no automatic retry; another research request stops as unresolved.
+Research consumes one of the two repair rounds and the recheck consumes one of
+three reviews. Search has a 10-second timeout within the existing 300-second run
+limit. A restart during research marks the run interrupted without replay.
+
+External snippets are untrusted excerpts. The verifier must explicitly resolve
+the original deficiency; contradictory evidence requiring changed assumptions
+still needs a new plan. Sources never become replacements for the simulation's
+population-weighted results.
 
 ## Optional legacy HTTP entry point
 

@@ -53,8 +53,22 @@ required_checks[].id. Example finding shape:
 {"check_id":"p2.goal_alignment","status":"pass","summary":"Your evidence-based assessment","evidence":[{"pointer":"/plan/scenarios"}]}.
 This is a format example, not an instruction to pass the check.
 The remaining required top-level field is
-repair_requests [{id,action:rerun_scenario|revise_plan|request_clarification,
+repair_requests [{id,action:rerun_scenario|revise_plan|request_clarification|research_evidence,
 check_ids:[...],scenario_ids:[...],reason}].
+
+Use research_evidence when a specific external evidence gap can be investigated
+with web search. Its reason MUST be a self-contained search question (3-600 bytes,
+one line, no secrets), naming the topic and location/date when relevant. Return
+one research_evidence request by itself, tied to the affected non-passing checks.
+Do not request research for missing arithmetic, missing simulation results, user
+preferences, or to validate synthetic percentages. Use repair status for a
+researchable gap. Only one search is allowed per run. When web_research is present,
+review whether its sources resolve the question in web_research.query.query and
+the original deficiency recorded in conclusions. Explicitly explain the resolution
+or remaining gap in your summary. Never request another search for the same run;
+insufficient or contradictory evidence must remain unresolved. Research does not
+change the frozen simulation assumptions or its probabilities. If a source means
+the experiment needs different assumptions, request a revised plan.
 
 Every repair/blocked semantic finding needs a targeted repair request. Rerun requests
 must reference existing scenario IDs; plan revisions and clarification may reference

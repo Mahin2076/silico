@@ -81,6 +81,7 @@ fn fixture() -> Run {
         checks: vec![],
         verifier: None,
         p2_reviews: vec![],
+        research: None,
         events: vec![],
         usage: Usage::default(),
         error: None,
@@ -95,6 +96,7 @@ fn service(base: String, verifier_url: Option<String>) -> Service {
         verifier_url,
         verifier_token: None,
         p2: None,
+        research_client: None,
         slots: Arc::new(tokio::sync::Semaphore::new(2)),
     }
 }
@@ -738,11 +740,148 @@ async fn verification_retry_is_claimed_once_and_reuses_saved_results() {
     assert_eq!(last.p2_reviews.len(), 1);
     assert_eq!(serde_json::to_value(&last.results).unwrap(), original);
     let persisted_review = &last.p2_reviews[0];
-    assert_eq!(crate::verifier::request_hash(&persisted_review.request), persisted_review.decision.request_hash);
+    assert_eq!(
+        crate::verifier::request_hash(&persisted_review.request),
+        persisted_review.decision.request_hash
+    );
     last.status = "blocked".into();
     last.p2_reviews[0].decision.receipt.error_code = Some("invalid_review_evidence".into());
     assert!(super::p2::can_retry(&last));
     last.p2_reviews = vec![last.p2_reviews[0].clone(); 3];
     assert!(!super::p2::can_retry(&last));
     task.abort();
+}
+
+// Local transport fixtures only: no paid search/model calls in these tests.
+struct ResearchFixture {
+    repeat: bool,
+}
+impl crate::verifier::VerifierTransport for ResearchFixture {
+    fn identity(&self) -> crate::verifier::TransportIdentity {
+        crate::verifier::TransportIdentity {
+            mode: "mock".into(),
+            provider: "research-fixture".into(),
+            model: crate::verifier::DEFAULT_MODEL.into(),
+        }
+    }
+    fn complete<'a>(&'a self, _: &'a str, user: &'a str) -> crate::verifier::CompletionFuture<'a> {
+        Box::pin(async move {
+            let e: Value = serde_json::from_str(user).unwrap();
+            let research = e["request"]["web_research"].is_object();
+            let repair = !research || self.repeat;
+            let findings:Vec<_>=e["required_checks"].as_array().unwrap().iter().map(|c|json!({
+                "check_id":c["id"], "status":if repair && c["id"]=="p2.explicit_assumptions" {"repair"} else {"pass"},
+                "summary":"Fixture assessment", "evidence":[{"pointer":if c["id"]=="p2.web_grounding" {"/web_research/sources/0"} else {"/plan/assumptions/0"}}]
+            })).collect();
+            let repairs = if repair {
+                json!([{"id":"research-1","action":"research_evidence","check_ids":["p2.explicit_assumptions"],"scenario_ids":[],"reason":"What evidence supports the stated offer assumptions in San Francisco?"}])
+            } else {
+                json!([])
+            };
+            Ok(crate::verifier::Completion{model:crate::verifier::DEFAULT_MODEL.into(),text:json!({
+                "schema_version":1,"run_id":e["run_id"],"plan_hash":e["plan_hash"],"request_hash":e["request_hash"],"repair_round":e["repair_round"],"verdict":if repair {"repair"} else {"pass"},"summary":if repair {"External support for the stated assumptions is missing"} else {"Sources address the original gap; simulation remains hypothetical"},"findings":findings,"repair_requests":repairs
+            }).to_string()})
+        })
+    }
+}
+async fn research_case(kind: &str, repeat: bool) -> (Service, Run, usize) {
+    let search_count = Arc::new(AtomicUsize::new(0));
+    let count = search_count.clone();
+    let empty = kind == "empty";
+    let (url,task)=serve(axum::Router::new().route("/search",axum::routing::post(move |axum::Json(body):axum::Json<Value>| {
+        count.fetch_add(1,Ordering::SeqCst);
+        assert!(body["query"].as_str().unwrap().contains("offer assumptions"));
+        async move {axum::Json(json!({"results":{"web":if empty {json!([])} else {json!([{"title":"Offer evidence","url":"https://example.org/source","description":"Published evidence about the stated assumptions","page_age":"2026-10-16"}])}}}))}
+    }))).await;
+    let mut s = service("http://localhost:1/v1".into(), None);
+    let mut r = native_fixture();
+    r.inject_missing = false;
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    r.mode = "live".into();
+    r.status = "awaiting_verifier".into();
+    r.verifier = None;
+    s.save(&r).unwrap();
+    s.p2 = Some(crate::verifier::Verifier::new(super::p2::Transport(
+        Box::new(ResearchFixture { repeat }),
+    )));
+    if kind != "missing" {
+        s.research_client = Some(crate::verifier::YouSearchClient::for_test(format!(
+            "{url}/search"
+        )));
+    }
+    s.verify_saved(&mut r).await.unwrap();
+    task.abort();
+    (s, r, search_count.load(Ordering::SeqCst))
+}
+#[tokio::test]
+async fn research_followup_preserves_simulation_and_binds_sources_to_recheck() {
+    let (s, r, calls) = research_case("ready", false).await;
+    assert_eq!(calls, 1);
+    assert_eq!(r.round, 1);
+    assert_eq!(r.p2_reviews.len(), 2);
+    let before = &r.p2_reviews[0];
+    let after = &r.p2_reviews[1];
+    assert_eq!(before.request.plan_hash, after.request.plan_hash);
+    assert_eq!(
+        serde_json::to_value(&before.request.results).unwrap(),
+        serde_json::to_value(&after.request.results).unwrap()
+    );
+    assert_ne!(before.decision.request_hash, after.decision.request_hash);
+    assert!(after.request.web_research.is_some());
+    assert_eq!(
+        after.decision.verdict,
+        crate::verifier::Verdict::Pass,
+        "{}",
+        after.decision.summary
+    );
+    assert_ne!(
+        r.status, "complete",
+        "mock evidence cannot complete a live run"
+    );
+    assert_eq!(
+        r.research.as_ref().unwrap().trigger_request_hash,
+        before.decision.request_hash
+    );
+    assert!(s
+        .store
+        .get(&r.workspace, &r.run_id)
+        .unwrap()
+        .unwrap()
+        .research
+        .is_some());
+    // Exercise the production completion binding with explicit synthetic live labels.
+    let mut live = r.clone();
+    live.research.as_mut().unwrap().web.as_mut().unwrap().mode = "live".into();
+    let mut review = after.clone();
+    review.request = super::p2::request(&live).unwrap();
+    review.decision.request_hash = crate::verifier::request_hash(&review.request);
+    review.decision.receipt.mode = "live".into();
+    assert_eq!(super::p2::response(&live, &review).unwrap().verdict, "pass");
+    live.research
+        .as_mut()
+        .unwrap()
+        .web
+        .as_mut()
+        .unwrap()
+        .sources[0]
+        .snippets[0] = "Changed evidence".into();
+    assert!(super::p2::response(&live, &review).is_err());
+    live.research.as_mut().unwrap().query.query = "Unrelated query".into();
+    assert!(super::p2::request(&live).is_err());
+}
+#[tokio::test]
+async fn research_failures_and_loops_cannot_pass_or_repeat_search() {
+    for kind in ["empty", "missing"] {
+        let (_, r, calls) = research_case(kind, false).await;
+        assert_eq!(r.status, "blocked");
+        assert!(r.research.unwrap().error.is_some());
+        assert_eq!(r.p2_reviews.len(), 1);
+        assert_eq!(calls, if kind == "empty" { 1 } else { 0 });
+    }
+    let (_, r, calls) = research_case("ready", true).await;
+    assert_eq!(r.status, "blocked");
+    assert_eq!(calls, 1);
+    assert_eq!(r.p2_reviews.len(), 2);
+    assert!(r.error.unwrap().contains("One-search budget exhausted"));
 }

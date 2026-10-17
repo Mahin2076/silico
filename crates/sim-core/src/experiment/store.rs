@@ -33,6 +33,7 @@ impl Store {
                 "checking",
                 "repairing",
                 "verifying",
+                "researching",
             ]
             .contains(&run.status.as_str())
             {
@@ -140,6 +141,7 @@ impl Store {
             "checking",
             "repairing",
             "verifying",
+            "researching",
         ]
         .contains(&r.status.as_str())
         {

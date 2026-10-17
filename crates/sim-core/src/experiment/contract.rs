@@ -113,6 +113,15 @@ pub struct Event {
     pub message: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ResearchFollowup {
+    pub trigger_request_hash: String,
+    pub check_ids: Vec<String>,
+    pub objection: String,
+    pub query: crate::verifier::ResearchQuery,
+    pub web: Option<crate::verifier::WebResearch>,
+    pub error: Option<String>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Run {
     pub run_id: String,
     pub workspace: String,
@@ -133,6 +142,8 @@ pub struct Run {
     pub verifier: Option<VerifierResponse>,
     #[serde(default)]
     pub p2_reviews: Vec<super::p2::Review>,
+    #[serde(default)]
+    pub research: Option<ResearchFollowup>,
     pub events: Vec<Event>,
     pub usage: crate::crusoe::Usage,
     pub error: Option<String>,

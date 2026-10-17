@@ -1,3 +1,4 @@
+import { renderResearch } from './experiment-research.js';
 import { workspaceHeaders, WORKSPACE } from './workspace.js';
 export async function mountExperiments(root = document, { getCity = () => null, embedded = false, beforeStart = () => {} } = {}) {
 const $ = id => root.querySelector(`#${id}`);
@@ -36,6 +37,7 @@ function render(r) {
   $('status').textContent = r.status === 'complete' ? (r.mode === 'demo' ? (embedded ? 'Complete' : 'Demo verified') : 'Experiment verified') : r.status.replaceAll('_',' ');
   if (embedded) $('run-mode').textContent = `${r.mode === 'demo' ? 'Demo' : 'Live'} · ${({sf:'San Francisco',neu_york:'New York',synth_la:'Los Angeles',cybercago:'Chicago',simami:'Miami'}[r.city] || r.city)}`;
   $('run-goal').textContent = r.goal;
+  renderResearch($('research'), r);
   $('verifier-summary').hidden = !r.verifier;
   const p2 = r.p2_reviews?.at(-1);
   $('verifier-summary').textContent = r.verifier ? `${p2 ? 'Nemotron' : 'Verifier'}: ${r.verifier.summary}` : '';
@@ -44,8 +46,8 @@ function render(r) {
   const retryableCodes = new Set(['invalid_review_evidence','malformed_review','review_identity_mismatch','invalid_review_coverage','invalid_repair_request','missing_targeted_repair','inconsistent_review_verdict','timeout','network_error','provider_http_error','rate_limited','authentication_failed','malformed_provider_response','model_mismatch','response_too_large']);
   $('retry-verifier').hidden = r.mode !== 'live' || (r.p2_reviews || []).length >= 3 || !(r.status === 'awaiting_verifier' || (['blocked','needs_input'].includes(r.status) && retryableCodes.has(p2?.decision.receipt.error_code)));
   $('retry-verifier').disabled = !ready?.verifier_ready;
-  $('stats').replaceChildren(...[`${r.residents.toLocaleString()} residents`,`${r.archetypes.length} archetypes`,`${r.round} / 2 repairs`,`${r.usage.requests + (r.p2_reviews || []).reduce((n, v) => n + v.decision.receipt.model_calls, 0)} model requests`].map(t => node('span',t,'stat')));
-  let notice = r.error || (r.mode === 'demo' ? 'Illustrative fixture probabilities and a simulated verifier. This demonstrates execution and repair; it is not a live prediction.' : r.status === 'awaiting_verifier' ? 'Execution passed, but this run is not complete. Connect P2’s verifier and retry verification to reuse these results.' : 'Hypothetical model estimates. Only the stated assumptions are used; no live research or news is included.');
+  $('stats').replaceChildren(...[`${r.residents.toLocaleString()} residents`,`${r.archetypes.length} archetypes`,`${r.round} / 2 repairs`,`${r.research?.web?.search_calls || 0} / 1 searches`,`${r.usage.requests + (r.p2_reviews || []).reduce((n, v) => n + v.decision.receipt.model_calls, 0)} model requests`].map(t => node('span',t,'stat')));
+  let notice = r.error || (r.mode === 'demo' ? 'Illustrative fixture probabilities and a simulated verifier. This demonstrates execution and repair; it is not a live prediction.' : r.status === 'awaiting_verifier' ? 'Execution passed, but this run is not complete. Connect P2’s verifier and retry verification to reuse these results.' : 'Hypothetical model estimates from frozen assumptions. Any web research informs independent review, not the simulated probabilities.');
   if (embedded && !r.error) notice = r.mode === 'demo' ? 'Sample data · not a live prediction.' : r.status === 'awaiting_verifier' ? 'Awaiting independent verification.' : 'Model estimates, not observed behavior.';
   $('run-notice').hidden = !notice; $('run-notice').textContent = notice;
   $('scenarios').replaceChildren();

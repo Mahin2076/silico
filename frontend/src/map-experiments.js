@@ -37,7 +37,7 @@ export function createMapExperiments({ getCity, validateAudience, returnFocus })
         <div id="run" hidden>
           <div class="status-row"><span id="run-mode" class="badge"></span><h2 id="status" aria-live="polite"></h2><button id="cancel" hidden>Cancel</button></div>
           <p id="run-goal"></p><p id="run-notice" class="notice" hidden></p>
-          <div id="scenarios"></div>
+          <div id="scenarios"></div><section id="research" aria-label="Research follow-up" hidden></section>
         </div>
         <details id="details">
           <summary>Details & saved runs</summary>

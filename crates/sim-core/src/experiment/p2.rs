@@ -86,7 +86,7 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
             ],
         })
         .collect();
-    let mut conclusions = vec!["These are hypothetical model estimates for seeded synthetic residents, aggregated with Census person weights. They are not observed behavior, validated forecasts, or causal evidence. Only the frozen scenario assumptions are used; no external research is included.".into()];
+    let mut conclusions = vec!["These are hypothetical model estimates for seeded synthetic residents, aggregated with Census person weights. They are not observed behavior, validated forecasts, or causal evidence. Only the frozen scenario assumptions determine simulation results. Any attached research is for independent review, not an input to these probabilities.".into()];
     for r in run.results.iter().filter(|r| r.status == "complete") {
         conclusions.push(format!(
             "{}: model-estimated weighted outcome probabilities: {}.",
@@ -98,6 +98,35 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
                 .join(", ")
         ));
     }
+    if let Some(research) = &run.research {
+        let trigger = run
+            .p2_reviews
+            .iter()
+            .find(|v| v.decision.request_hash == research.trigger_request_hash)
+            .context("Research has no original review")?;
+        ensure!(
+            trigger.decision.receipt.error_code.is_none()
+                && trigger
+                    .decision
+                    .repair_requests
+                    .iter()
+                    .any(|repair| repair.action == p2::RepairAction::ResearchEvidence
+                        && repair.reason == research.query.query
+                        && repair.check_ids == research.check_ids)
+                && trigger.decision.summary == research.objection,
+            "Research does not match the original objection"
+        );
+        let web = research
+            .web
+            .as_ref()
+            .context("Research is unresolved; completion refused")?;
+        ensure!(
+            web.query.query == research.query.query
+                && web.query.include_domains == research.query.include_domains,
+            "Research sources belong to a different query"
+        );
+        conclusions.push(format!("Original review deficiency to resolve using the attached research: {}. Research question: {}", research.objection, research.query.query));
+    }
     Ok(p2::VerificationRequest {
         schema_version: p2::SCHEMA_VERSION,
         run_id: run.run_id.clone(),
@@ -108,7 +137,7 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
         results,
         deterministic_findings,
         conclusions,
-        web_research: None,
+        web_research: run.research.as_ref().and_then(|r| r.web.clone()),
     })
 }
 
@@ -151,6 +180,7 @@ pub fn response(run: &p1::Run, review: &Review) -> Result<p1::VerifierResponse> 
                 p2::RepairAction::RerunScenario => "rerun_scenario",
                 p2::RepairAction::RevisePlan => "revise_plan",
                 p2::RepairAction::RequestClarification => "request_clarification",
+                p2::RepairAction::ResearchEvidence => "research_evidence",
             }
             .into(),
             scenario_ids: r.scenario_ids.clone(),

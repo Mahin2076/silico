@@ -68,6 +68,7 @@ pub fn router(cities: Arc<HashMap<String, Arc<CityRuntime>>>) -> Router {
         };
         Ok(Service {
             p2,
+            research_client: crate::verifier::YouSearchClient::from_env().ok(),
             cities,
             store: Store::open(
                 &std::env::var("EXPERIMENT_DB").unwrap_or_else(|_| "runs/experiments.db".into()),
@@ -111,7 +112,7 @@ async fn config(State(s): State<Arc<Service>>) -> Json<Value> {
     let mut cities: Vec<_> = s.cities.keys().cloned().collect();
     cities.sort();
     Json(
-        json!({"live_ready":s.client.configured() && std::env::var("MODEL_OFFLINE").as_deref()!=Ok("1"),"verifier_ready":s.p2.is_some() || s.verifier_url.is_some(),"verifier_model":std::env::var("SILICO_VERIFIER_MODEL").unwrap_or_else(|_|crate::verifier::DEFAULT_MODEL.into()),"max_verifier_requests":3,"verifier_input_limit_bytes":131072,"model":s.client.model,"cities":cities,"max_repair_rounds":2,"max_requests":48,"deadline_seconds":300,"token_reservation_budget":180000}),
+        json!({"live_ready":s.client.configured() && std::env::var("MODEL_OFFLINE").as_deref()!=Ok("1"),"verifier_ready":s.p2.is_some() || s.verifier_url.is_some(),"verifier_model":std::env::var("SILICO_VERIFIER_MODEL").unwrap_or_else(|_|crate::verifier::DEFAULT_MODEL.into()),"research_ready":s.p2.is_some() && s.research_client.is_some() && std::env::var("MODEL_OFFLINE").as_deref()!=Ok("1"),"max_search_requests":1,"max_verifier_requests":3,"verifier_input_limit_bytes":131072,"model":s.client.model,"cities":cities,"max_repair_rounds":2,"max_requests":48,"deadline_seconds":300,"token_reservation_budget":180000}),
     )
 }
 #[derive(Deserialize, serde::Serialize)]
@@ -192,6 +193,7 @@ async fn start(
         checks: vec![],
         verifier: None,
         p2_reviews: vec![],
+        research: None,
         events: vec![],
         usage: Usage::default(),
         error: None,

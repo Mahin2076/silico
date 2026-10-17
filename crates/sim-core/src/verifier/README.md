@@ -170,7 +170,9 @@ when local failure or provider unavailability prevents semantic review.
 Nemotron reviews goal alignment, explicit assumptions, conclusion support, and
 required custom semantic checks. Output must echo run/plan/request/round identity,
 contain every required check exactly once, cite existing RFC 6901 evidence paths,
-and use only `rerun_scenario`, `revise_plan`, or `request_clarification` actions.
+and use only `rerun_scenario`, `revise_plan`, `request_clarification`, or `research_evidence` actions.
+A research repair stands alone, uses its reason as a 3–600 byte search question,
+and targets a non-passing check. The map runner executes at most one search.
 Unknown fields, invented references, contradictory verdicts, unsupported repairs,
 and malformed/truncated output block completion. Model findings cannot override a
 failed deterministic gate. Prompt content is treated as untrusted evidence.

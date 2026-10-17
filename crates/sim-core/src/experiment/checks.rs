@@ -256,7 +256,13 @@ pub fn validate_verifier(req: &VerifierRequest, res: &VerifierResponse) -> Resul
     }
     for r in &res.repair_requests {
         ensure!(
-            ["rerun_scenario", "revise_plan", "request_clarification"].contains(&r.action.as_str()),
+            [
+                "rerun_scenario",
+                "revise_plan",
+                "request_clarification",
+                "research_evidence"
+            ]
+            .contains(&r.action.as_str()),
             "Unsupported repair action"
         );
         ensure!(
