@@ -47,3 +47,6 @@ data/*.aux.xml
 .trae
 .windsurf
 .vercel
+
+# Python deployment helper bytecode
+__pycache__/

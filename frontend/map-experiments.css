@@ -5,3 +5,5 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 @media (prefers-reduced-transparency: reduce) { header { background:#fafcff;-webkit-backdrop-filter:none;backdrop-filter:none; } }
 #research{border-top:1px solid rgba(30,55,75,.12);padding:12px 0;margin-top:8px;font-size:11px}#research h3{font-size:12px;margin-bottom:8px}#research p{margin:6px 0;overflow-wrap:anywhere}#research a{color:#0069de}#research small{display:block;color:#647180;font-size:10px;margin-top:6px}#research details{margin:8px 0}
+
+.map-preview{margin-top:7px;font-size:11px}.map-preview[aria-pressed=true]{background:#e7f5ec;color:#237b40}

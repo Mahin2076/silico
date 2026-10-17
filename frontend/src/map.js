@@ -368,7 +368,7 @@ export class SFMap {
           ang, speed: 5 + Math.random() * 9, // world px/sec
           turnClock: Math.random() * 2.5,
           verdict: null, activateAt: 0,
-          seed: a.id ?? i,
+          id: a.id ?? i, seed: a.id ?? i,
           segmentIndex: rawIndex,
           segments: this._segmentIndex.segments[rawIndex],
           thought: makeThought(a, a.id ?? i),   // diverse persona thought (backend value vector + demographics)
@@ -714,7 +714,7 @@ export class SFMap {
   }
 
   clearVerdicts() {
-    for (const a of this.agents) a.rationale = null;
+    for (const a of this.agents) { a.rationale = null; a.responseLabel = null; a.experimentResponse = false; }
     if (this.reducedMotion) { for (const a of this.agents) a.verdict = null; this.mode = "idle"; this.clearFade = 1; return; }
     if (this.mode === "idle") return;
     this.clearT0 = performance.now(); this.mode = "clearing";
@@ -902,7 +902,7 @@ export class SFMap {
       let text;
       if (showVerdict && a.verdict) {
         // ~40% surface a real backend rationale; the rest show a varied stance line
-        const useReal = a.rationale && ((a.seed >>> 0) % 5) < 2;
+        const useReal = a.rationale && (a.experimentResponse || ((a.seed >>> 0) % 5) < 2);
         text = useReal ? a.rationale : verdictReaction(a.verdict, a.seed);
       } else {
         text = a.thought;

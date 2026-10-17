@@ -1,3 +1,4 @@
+import { experimentResponses } from "./experiment-responses.js";
 import { planQuestion } from "./question-plan.js";
 import { createGeography } from "./geography.js";
 // ─────────────────────────────────────────────────────────────────────────
@@ -2126,7 +2127,10 @@ function showRephrase(parsed, question) {
 
 // ── misc ─────────────────────────────────────────────────────────────────
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, informational = false) {
+  els.toast.classList.toggle("toast--info", informational);
+  els.toast.setAttribute("role", informational ? "status" : "alert");
+  els.toast.setAttribute("aria-live", informational ? "polite" : "assertive");
   els.toast.textContent = msg;
   show(els.toast);
   clearTimeout(toastTimer);
@@ -2166,6 +2170,15 @@ async function runMemoryComparison(question) {
 }
 
 const mapExperiments = createMapExperiments({
+  onPreview: (run, scenarioId) => {
+    if (run.city !== citySlug()) return;
+    const responses = experimentResponses(map.agents, run, scenarioId);
+    map.onProgress = null; map.onRevealComplete = null;
+    map.startReveal(responses.map(r => r.verdict));
+    map.agents.forEach((agent, i) => Object.assign(agent, responses[i], { experimentResponse: true }));
+    const scenario = run.plan.scenarios.find(s => s.scenario_id === scenarioId);
+    toast(`${scenario.description} · green: ${scenario.options[0]} · red: other response. Zoom in and click a resident.`, true);
+  },
   getCity: () => state.city?.slug || "sf",
   validateAudience: () => {
     if (state.switching) throw new Error("Wait for the city to finish switching.");
@@ -2264,7 +2277,7 @@ function showCharCard(s) {
   const tags = [leanLabel(v.economic, "economically left", "economically right"), leanLabel(v.social, "socially progressive", "socially conservative")].filter(Boolean);
   const issues = topIssues(v, 2);
   const isPoll = s.verdict != null;
-  const label = isPoll ? `leaning ${s.verdict}` : "thinking";
+  const label = isPoll ? (s.responseLabel || `leaning ${s.verdict}`) : "thinking";
   const labelClass = isPoll ? (s.verdict === "yes" ? "yes" : "no") : "";
   const thought = isPoll && s.rationale ? s.rationale : s.thought;
   const speech = thought || "…";

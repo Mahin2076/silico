@@ -1387,3 +1387,5 @@ body:not(.timeline-page) #feed-panel { display: none !important; }
 .question-plan strong { color: var(--ink); font-weight: 600; }
 .question-plan p { margin: 3px 0 0; }
 .ask-fields[hidden] { display: none; }
+
+.toast.toast--info { color: #344454; border: 1px solid rgba(40,70,90,.12); }

@@ -1,7 +1,7 @@
 import { mountExperiments } from './experiments.js';
 
 // A compact result card above the existing composer. The map stays mounted.
-export function createMapExperiments({ getCity, validateAudience, returnFocus }) {
+export function createMapExperiments({ getCity, validateAudience, returnFocus, onPreview }) {
   const host = document.createElement('section');
   host.id = 'map-experiment-panel';
   host.className = 'map-experiment-panel';
@@ -55,7 +55,7 @@ export function createMapExperiments({ getCity, validateAudience, returnFocus })
       event.stopPropagation();
       if(event.key==='Escape'){event.preventDefault();close();}
     });
-    return mountExperiments(root,{embedded:true,getCity,beforeStart:validateAudience});
+    return mountExperiments(root,{embedded:true,getCity,beforeStart:validateAudience,onPreview});
   }
   async function open() {
     host.hidden = false;

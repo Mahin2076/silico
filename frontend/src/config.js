@@ -23,7 +23,7 @@ const CONFIGURED_BACKEND = (() => {
   const fromFile = typeof globalThis.SIMTRA_BACKEND === "string" ? globalThis.SIMTRA_BACKEND.trim() : "";
   const fromQuery = (QUERY.get("backend") || "").trim();
   const pick = /^https:\/\/[^\s/]+/.test(fromQuery) ? fromQuery : fromFile;
-  return /^https:\/\/[^\s/]+/.test(pick) ? pick.replace(/\/+$/, "") : "";
+  return pick === "/api" ? pick : /^https:\/\/[^\s/]+/.test(pick) ? pick.replace(/\/+$/, "") : "";
 })();
 export const BASE = LOCAL_BACKEND
   ? `http://localhost:${LOCAL_PORT}`

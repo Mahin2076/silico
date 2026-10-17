@@ -1,17 +1,18 @@
+import { BASE } from './config.js';
 import { renderResearch } from './experiment-research.js';
 import { workspaceHeaders, WORKSPACE } from './workspace.js';
-export async function mountExperiments(root = document, { getCity = () => null, embedded = false, beforeStart = () => {} } = {}) {
+export async function mountExperiments(root = document, { getCity = () => null, embedded = false, beforeStart = () => {}, onPreview = null } = {}) {
 const $ = id => root.querySelector(`#${id}`);
 const params = new URLSearchParams(location.search);
 // This lab is local by default; it never inherits the legacy production API.
 const port = /^\d{1,5}$/.test(params.get('port') || '') ? params.get('port') : '8083';
-const base = `http://localhost:${port}`;
+const base = embedded || !["localhost", "127.0.0.1"].includes(location.hostname) ? BASE : `http://localhost:${port}`;
 const brand = root.querySelector('.brand');
 if (brand) brand.href = location.href;
 const terminal = new Set(['complete','blocked','cancelled','interrupted','needs_input','awaiting_verifier']);
 const fixedGoal = 'Compare a vegetarian takeaway lunch at $8, $10, and $12';
 const storageKey = `silico.run.${port}.${WORKSPACE}`;
-let current = null, polling = null, ready = null, selected = null;
+let current = null, polling = null, ready = null, selected = null, previewKey = null;
 if ($('city-link')) $('city-link').href = `index.html?backend=local&port=${port}&ws=${WORKSPACE}`;
 function node(tag, text, cls) { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
 async function api(path, body) {
@@ -52,6 +53,10 @@ function render(r) {
   let notice = r.error || (r.mode === 'demo' ? 'Illustrative fixture probabilities and a simulated verifier. This demonstrates execution and repair; it is not a live prediction.' : r.status === 'awaiting_verifier' ? 'Execution passed, but this run is not complete. Connect P2’s verifier and retry verification to reuse these results.' : 'Hypothetical model estimates from frozen assumptions. Any web research informs independent review, not the simulated probabilities.');
   if (embedded && !r.error) notice = r.mode === 'demo' ? 'Sample data · not a live prediction.' : r.status === 'awaiting_verifier' ? 'Awaiting independent verification.' : 'Model estimates, not observed behavior.';
   $('run-notice').hidden = !notice; $('run-notice').textContent = notice;
+  if (onPreview && (!previewKey || !previewKey.startsWith(`${r.run_id}:`))) {
+    const first = r.results.find(result => result.status === 'complete');
+    if (first) { previewKey = `${r.run_id}:${first.scenario_id}:${first.attempt}`; onPreview(r, first.scenario_id); }
+  }
   $('scenarios').replaceChildren();
   if (!r.plan) $('scenarios').append(node('p','Preparing the experiment plan…','hint'));
   for (const s of r.plan?.scenarios || []) {
@@ -64,6 +69,13 @@ function render(r) {
       row.append(node('span',d.option,'label'),bar,node('strong',`${(d.probability*100).toFixed(1)}%`)); card.append(row);
     } else card.append(node('p',result?.error || 'Awaiting a complete scenario result.','hint'));
     if (result) card.append(node('p',`Attempt ${result.attempt} · ${result.answered_archetype_ids.length}/${result.expected_archetype_ids.length} archetypes answered`,'hint'));
+    if (onPreview && result?.status === 'complete') {
+      const key = `${r.run_id}:${s.scenario_id}:${result.attempt}`;
+      const button = node('button', key === previewKey ? 'Showing on map' : 'See resident responses', 'map-preview');
+      button.setAttribute('aria-pressed', String(key === previewKey));
+      button.addEventListener('click', () => { previewKey = key; onPreview(r, s.scenario_id); render(r); });
+      card.append(button);
+    }
     $('scenarios').append(card);
   }
   if (embedded) {
