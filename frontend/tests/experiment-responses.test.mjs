@@ -6,7 +6,7 @@ test('scenario dots use exact resident membership and saved probabilities, never
   const agents=[{id:9},{id:7},{id:999}];
   const a=experimentResponses(agents,run,'a');
   assert.deepEqual(a.map(x=>x.verdict),['no','yes',null]);
-  assert.match(a[1].rationale,/Buy: 100%/);
+  assert.match(a[1].rationale,/Buy: 100.0%/);
   assert.match(a[1].rationale,/not an individual interview/);
   assert.deepEqual(experimentResponses(agents,run,'a'),a);
   assert.deepEqual(experimentResponses(agents,run,'b').map(x=>x.verdict),[null,'no',null]);

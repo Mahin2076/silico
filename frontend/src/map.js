@@ -709,7 +709,7 @@ export class SFMap {
     const now = performance.now();
     this.revealT0 = now; this.clearFade = 1;
     const spread = durationMs * 0.82;
-    this.agents.forEach((a, i) => { a.verdict = verdicts[i]; a.activateAt = this.reducedMotion ? now - POP_MS : now + Math.random() * spread; });
+    this.agents.forEach((a, i) => { a.responseLabel = null; a.experimentResponse = false; a.verdict = verdicts[i]; a.activateAt = this.reducedMotion ? now - POP_MS : now + Math.random() * spread; });
     this.revealCount = 0; this.mode = "reveal";
   }
 

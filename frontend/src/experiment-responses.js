@@ -11,7 +11,7 @@ export function experimentResponses(agents, run, scenarioId) {
     const draw = (hash >>> 0) / 4294967296;
     let total = 0, choice = answer.probabilities.length - 1;
     for (let i = 0; i < answer.probabilities.length; i++) { total += answer.probabilities[i]; if (draw < total) { choice = i; break; } }
-    const estimates = scenario.options.map((option, i) => `${option}: ${(answer.probabilities[i] * 100).toFixed(0)}%`).join(' · ');
+    const estimates = scenario.options.map((option, i) => `${option}: ${(answer.probabilities[i] * 100).toFixed(1)}%`).join(' · ');
     return { verdict: choice === 0 ? 'yes' : 'no', responseLabel: scenario.options[choice], rationale: `${run.mode === 'demo' ? 'Demo fixture' : 'Modeled response'} · ${scenario.description}. ${estimates}. Shared archetype estimate, not an individual interview.` };
   });
 }
