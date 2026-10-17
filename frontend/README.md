@@ -67,3 +67,30 @@ src/verdict.js      stochastic per-dot yes/no (marginal == p_yes)
 src/sf-outline.js   embedded SF land outline (GeoJSON)
 src/app.js          state machine + UI orchestration
 ```
+
+
+## Continuous satellite zoom
+
+Open `index.html?backend=local&port=8083&view=us` and scroll or pinch into
+California and San Francisco. The same live satellite map remains visible
+throughout. Residents preload near a supported city and fade in between zoom
+11 and 12.5. Their positions use the satellite camera directly, so there is no
+recenter, page change, background swap, or city-selection step. Zoom out to
+fade back to geography; the globe control returns to the national view.
+
+The existing resident inspector, experiments, and timeline remain available
+at city scale. Available populations still come from `/cities`; the map itself
+is bounded to the mainland US, with Alaska accessible through the small AK
+control. Hawaii is excluded. Zoom-out stops at the current region’s overview;
+panning cannot leave that region’s bounds. Geographic exploration does
+not run inference. Existing `city=sf` links open directly at city scale.
+
+The locally vendored Leaflet 1.9.4 renderer uses public Esri World Imagery and
+place labels. No additional API key is needed. Census boundaries are used
+only to resolve older state deep links; see `assets/geography/README.md`.
+
+Run `node --test frontend/tests/geography.test.mjs` from the repository root
+for camera projection, resident fade, geographic bounds, and URL checks.
+
+Smooth camera frames use the pinned Leaflet 1.9.4 flyTo lifecycle, retaining
+loaded tile levels during wheel gestures instead of resetting the tile grid.

@@ -1,3 +1,4 @@
+import { createGeography } from "./geography.js";
 // ─────────────────────────────────────────────────────────────────────────
 // sim francisco · pixel-map frontend · orchestration
 //
@@ -178,7 +179,7 @@ function syncFilterButton() {
   chip.setAttribute("aria-pressed", count ? "true" : "false");
   chip.disabled = state.switching || state.phase === "booting" || state.phase === "error";
   const summary = count ? filterSummary() : "";
-  els.audienceChipText.textContent = count ? summary : "everyone · tap to filter";
+  els.audienceChipText.textContent = count ? summary : "everyone";
   const source = state.filterSourceRecords;
   if (count && source != null) {
     els.audienceChipCount.textContent = source.toLocaleString();
@@ -211,7 +212,7 @@ const inputOpen = () => els.ask.dataset.state === "input";
 const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test", experiment: "experiment" };
 const ASK_MODE_PLACEHOLDER = {
   experiment: "What should we test? e.g. compare a vegetarian lunch at $8, $10, and $12",
-  predict: "predict anything — e.g. will a Democrat win the 2026 California governor race?",
+  predict: "Ask the city a question…",
   ab: "Which message makes you more likely to support this proposal?",
   marketing: "Do you support the proposed transit measure?",
 };
@@ -497,9 +498,11 @@ function openPastResult(item) {
 // agent fetch is paged, so it fills the rest (0.2 → 0.97) as residents arrive.
 function setBoot(p) { els.bootFill.style.width = `${Math.round(Math.max(0, Math.min(1, p)) * 100)}%`; }
 
+let geography;
+let firstCityVisit = true;
+
 async function boot() {
   map.onZoomChange = (zoomedIn) => { zoomedIn ? show(els.returnBtn) : hide(els.returnBtn); };
-  map.start();
   initFeedPanel({
     getCity: citySlug,
     getBranch: () => state.mainBranch,
@@ -547,8 +550,30 @@ async function boot() {
     console.warn("city catalog unavailable, falling back to SF:", err);
   }
 
-  await loadCity(initial);
-  if (state.phase !== "error") initTour();
+  if (!state.cities.length) state.cities = [initial];
+  geography = await createGeography({
+    cities: state.cities,
+    renderer: map,
+    canLeave: () => !isBusy() && !state.switching,
+    onLeave: () => {
+      map.stop();
+      mapExperiments.close();
+      if (filterOpen()) closeFilters(false);
+      closePersonaModal();
+      closeAbout();
+      closeTitleMenu();
+      closeCharCard();
+    },
+    onEnter: async (slug) => {
+      await onSelectCity(slug);
+      if (!state.mainBranch || state.phase === "error") throw new Error("The city backend is unavailable. Try again shortly.");
+    },
+    onEntered: () => {
+      map.start();
+      syncTimelineLink();
+      if (firstCityVisit) { firstCityVisit = false; initTour(); }
+    },
+  });
 }
 
 // Create (or re-create) the simulation for a city, point the map base/bbox at it,
@@ -764,6 +789,8 @@ function syncTimelineLink() {
   const url = new URL("timeline.html", location.href);
   url.search = location.search;
   url.searchParams.set("city", citySlug());
+  url.searchParams.set("view", "city");
+  url.searchParams.delete("state");
   url.searchParams.set("ws", WORKSPACE);
   url.searchParams.delete("branch");
   url.searchParams.delete("residents");
@@ -778,6 +805,7 @@ $("timeline-link").addEventListener("contextmenu", syncTimelineLink);
 
 function syncActiveTitle() {
   syncTimelineLink();
+  geography?.setCity(citySlug());
   const city = state.cities.find((c) => c.slug === citySlug());
   els.titleCurrent.textContent = city?.display || state.city?.display || "San Francisco";
   els.titleMenu.querySelectorAll(".title-option").forEach((btn) => {
@@ -959,7 +987,7 @@ els.filterClear.addEventListener("click", () => {
 });
 
 async function onSelectCity(slug) {
-  if (state.switching || slug === citySlug()) return;
+  if (state.switching || (slug === citySlug() && state.mainBranch)) return;
   const city = state.cities.find((c) => c.slug === slug);
   if (!city) return;
 
@@ -2255,6 +2283,7 @@ els.aboutScrim.addEventListener("click", closeAbout);
 
 
 document.addEventListener("keydown", (e) => {
+  if (document.body.classList.contains("geography-open")) return;
   if (e.key === "Tab" && filterOpen()) {
     const focusable = [...els.filterModal.querySelectorAll("button:not([disabled]), input:not([disabled]), select:not([disabled])")];
     const first = focusable[0];
