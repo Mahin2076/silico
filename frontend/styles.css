@@ -1343,6 +1343,33 @@ body:not(.timeline-page) #feed-panel { display: none !important; }
 }
 .timeline-link:hover, .glass-pill:hover { background-color: rgba(255,255,255,.78); }
 .timeline-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Quiet, neutral controls over the map. Keep data/chart colors independent. */
+.dock { --accent: #292d2b; }
+.dock .ask, .dock .info-btn {
+  box-shadow: inset 0 1px 0 #ffffff80, 0 6px 24px #00000012;
+}
+.dock .audience-chip {
+  height: 32px; background: #ffffff28; border: 1px solid #242a2626;
+  color: #343a36; font-weight: var(--fw-med);
+}
+.dock .audience-chip svg [stroke] { stroke-width: 1.7; }
+.dock .audience-chip:hover { background: #ffffff60; }
+.dock .audience-chip[aria-pressed="true"] { background: #292d2b; border-color: #292d2b; color: #fff; }
+.dock .audience-chip[aria-pressed="true"]:hover { background: #404640; }
+.dock .ask-mode[aria-checked="true"] { background: #ffffffa6; color: #262b28; box-shadow: none; }
+.dock .ask-send { background: #292d2b; box-shadow: none; }
+.dock .ask-send:hover { background: #424943; }
+.dock .ask-send:disabled { background: var(--fill-hi); color: var(--ink-3); }
+.dock .info-btn { color: #343a36; }
+.dock .experiment-hint button { color: #343a36; text-decoration: underline; text-underline-offset: 3px; }
+.dock :is(.ask-send, .audience-chip, .ask-mode):focus-visible { outline: 2px solid #292d2b; outline-offset: 3px; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dock .ask, .dock .info-btn { -webkit-backdrop-filter: blur(24px) saturate(1.1); backdrop-filter: blur(24px) saturate(1.1); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dock .ask, .dock .info-btn { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 #status { right: 158px; width: auto; max-width: min(380px, calc(100vw - 500px)); }
 @media(max-width:760px) {
   .timeline-link { top: 20px; right: 12px; padding: 0 12px; }

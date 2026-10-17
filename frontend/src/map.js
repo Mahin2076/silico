@@ -470,6 +470,7 @@ export class SFMap {
   _minZoom() { return this._overviewZoom(); }
 
   _fitOverview(snap) {
+    if (this.geographicView) return;
     const z = this._overviewZoom();
     const c = this._fitCenter();
     this.camTarget = { x: c.x, y: c.y, zoom: z };
@@ -478,7 +479,26 @@ export class SFMap {
     this.onZoomChange && this.onZoomChange(false);
   }
 
+  // In geographic mode the satellite map owns the camera. Only residents are
+  // painted here, projected through that same camera so no map swap is needed.
+  setGeographicView(view) { this.geographicView = view; }
+
+  tapGeographic(sx, sy) {
+    const hit = this._hitSprite(sx, sy, true);
+    if (hit) {
+      try { this.onSpriteTap?.(hit); }
+      finally { this.onResidentSelect?.({ id: hit.seed, segments: { ...hit.segments } }); }
+      return;
+    }
+    this.onEmptyTap?.();
+  }
+
   zoomTo(wx, wy) {
+    if (this.geographicView) {
+      const b = MAP.bbox;
+      this.geographicView.zoomTo(b.west + wx / this.imgW * (b.east - b.west), b.north - wy / this.imgH * (b.north - b.south));
+      return;
+    }
     // detail zoom is clamped to an absolute range so "zoomed in" looks the same
     // (crisp, walkable) on a phone and a desktop, regardless of the overview scale.
     const z = Math.min(3.0, Math.max(2.0, this._fitZoom() * MAP.detailZoomMul));
@@ -487,7 +507,7 @@ export class SFMap {
     this.onZoomChange && this.onZoomChange(true);
   }
 
-  returnToOverview() { this._fitOverview(false); }
+  returnToOverview() { if (this.geographicView) this.geographicView.overview(); else this._fitOverview(false); }
 
   // keep the camera centre such that the viewport stays over the image
   _clamped(c) {
@@ -502,9 +522,17 @@ export class SFMap {
   }
 
   screenToWorld(sx, sy) {
+    if (this.geographicView) {
+      const p = this.geographicView.unproject(sx, sy);
+      return this.lonlatToWorld(p.lng, p.lat);
+    }
     return { x: this.cam.x + (sx - this.cssW / 2) / this.cam.zoom, y: this.cam.y + (sy - this.cssH / 2) / this.cam.zoom };
   }
   worldToScreen(wx, wy) {
+    if (this.geographicView) {
+      const b = MAP.bbox;
+      return this.geographicView.project(b.west + wx / this.imgW * (b.east - b.west), b.north - wy / this.imgH * (b.north - b.south));
+    }
     return { x: (wx - this.cam.x) * this.cam.zoom + this.cssW / 2, y: (wy - this.cam.y) * this.cam.zoom + this.cssH / 2 };
   }
 
@@ -605,9 +633,14 @@ export class SFMap {
     }, { passive: false });
   }
 
+  _spritePixels() {
+    const size = SPRITE_WORLD * this.cam.zoom;
+    return this.geographicView ? Math.max(9, Math.min(32, size)) : Math.max(3, size);
+  }
+
   // Nearest character; chart selection can opt into small overview sprites.
   _hitSprite(sx, sy, allowOverview = false) {
-    const drawPx = Math.max(3, SPRITE_WORLD * this.cam.zoom);
+    const drawPx = this._spritePixels();
     if (drawPx < 14 && !allowOverview) return null;
     const rx = drawPx * 0.55, ry = drawPx * 0.9;
     let best = null, bestD = Infinity;
@@ -705,21 +738,25 @@ export class SFMap {
     const dt = this.reducedMotion ? 0 : Math.min(0.05, (now - this.lastT) / 1000);
     this.lastT = now;
 
-    // animate camera toward target (snappy critically-damped-ish lerp)
-    const k = this.reducedMotion ? 1 : 1 - Math.pow(0.0001, dt); // ~time-constant independent of fps
-    this.cam.x = lerp(this.cam.x, this.camTarget.x, k);
-    this.cam.y = lerp(this.cam.y, this.camTarget.y, k);
-    this.cam.zoom = lerp(this.cam.zoom, this.camTarget.zoom, k);
-
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.fillStyle = COLORS.water;
-    ctx.fillRect(0, 0, this.cssW, this.cssH);
-
-    // Satellite mode paints just the visible multi-resolution tiles. The local
-    // pixel base remains an instant fallback and the source of the land mask.
-    if (this.baseReady) {
-      this._drawLocalBase(ctx);
-      if (this.satellite) this._drawSatellite(ctx);
+    if (this.geographicView) {
+      const zoom = this.geographicView.zoom();
+      this.cam.zoom = 256 * 2 ** zoom * (MAP.bbox.east - MAP.bbox.west) / (360 * this.imgW);
+      this.camTarget.zoom = this.cam.zoom;
+      const detail = zoom >= 14.2;
+      if (detail !== this.zoomedIn) { this.zoomedIn = detail; this.onZoomChange?.(detail); }
+      ctx.clearRect(0, 0, this.cssW, this.cssH);
+    } else {
+      const k = this.reducedMotion ? 1 : 1 - Math.pow(0.0001, dt);
+      this.cam.x = lerp(this.cam.x, this.camTarget.x, k);
+      this.cam.y = lerp(this.cam.y, this.camTarget.y, k);
+      this.cam.zoom = lerp(this.cam.zoom, this.camTarget.zoom, k);
+      ctx.fillStyle = COLORS.water;
+      ctx.fillRect(0, 0, this.cssW, this.cssH);
+      if (this.baseReady) {
+        this._drawLocalBase(ctx);
+        if (this.satellite) this._drawSatellite(ctx);
+      }
     }
 
     // clearing fade factor
@@ -749,8 +786,7 @@ export class SFMap {
 
   _drawSprites(now, dt) {
     const ctx = this.ctx;
-    const z = this.cam.zoom;
-    const drawPx = Math.max(3, SPRITE_WORLD * z);          // on-screen sprite height
+    const drawPx = this._spritePixels();                           // on-screen sprite height
     const showVerdict = this.mode === "reveal" || this.mode === "results" || this.mode === "clearing";
     const breathing = this.mode === "waiting" && !this.reducedMotion;
     const margin = drawPx * 2;
@@ -859,7 +895,7 @@ export class SFMap {
     if (!this.bubbleIdx.length) return;
     const ctx = this.ctx;
     const showVerdict = this.mode === "reveal" || this.mode === "results";
-    const drawPx = Math.max(3, SPRITE_WORLD * this.cam.zoom);
+    const drawPx = this._spritePixels();
     for (const i of this.bubbleIdx) {
       const a = this.agents[i];
       if (!a) continue;
