@@ -125,6 +125,8 @@ Mahin Bharathwaj.
 
 ## Shared Brain: proposed extension
 
+**Implemented on the city map:** the **Memory compare** composer tab runs the current Census population with memory off/on through the real prediction engine. It shows weighted results, archetype evidence, and an optional comparison against an observed reference. See [setup, API, and limitations](docs/MEMORY-COMPARISON.md). The shared research/versioning system below remains planned work.
+
 Research agents gather information about housing, transit, and local policies, then write their findings into a common memory that simulated residents consult when making decisions. Findings include sources and dates; verified corrections supersede outdated facts, while conflicting reports stay flagged until resolved. Residents keep their individual preferences. Compare the same unseen scenarios with and without memory to measure factual accuracy, stale claims, and duplicated research. This addresses Shared Brain: agents read and update shared knowledge, keep it consistent and current, and demonstrate whether sharing it improves results.
 
 This is proposed work, separate from the existing P1/P2 experiment and verifier implementation.

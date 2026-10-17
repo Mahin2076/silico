@@ -116,6 +116,7 @@ pub fn router(state: AppState) -> Router {
         .route("/tests/:test_id/personal-answers", post(test_personal_answers))
         .route("/branches/:bid/chatter", post(branch_chatter))
         .route("/branches/:bid/poll", post(branch_poll))
+        .route("/branches/:bid/memory-comparison", post(branch_memory_comparison))
         .route("/prediction-results", get(prediction_results))
         .route("/branches/:bid/counterfactual", post(branch_counterfactual))
         .route("/branches/:bid/ab-test", post(branch_ab_test))
@@ -914,6 +915,19 @@ async fn branch_chatter(
         .map(|(id, t)| (id.to_string(), Value::String(t)))
         .collect();
     Json(json!({ "chatter": map })).into_response()
+}
+
+async fn branch_memory_comparison(
+    State(st): State<AppState>, headers: HeaderMap, Path(bid): Path<String>,
+    Json(req): Json<crate::memory_evaluation::ComparisonRequest>,
+) -> axum::response::Response {
+    if let Err(error) = req.validate() { return (StatusCode::BAD_REQUEST,Json(json!({"error":error.to_string()}))).into_response(); }
+    let Some((ctx,_)) = find_branch(&st,&bid) else { return (StatusCode::NOT_FOUND,Json(json!({"error":"branch not found"}))).into_response(); };
+    if st.engine.memory.is_none() { return memory_not_configured(); }
+    match st.engine.compare_memory(&ctx.population,&req,&workspace_of(&headers)).await {
+        Ok(result)=>Json(result).into_response(),
+        Err(error)=>(StatusCode::BAD_GATEWAY,Json(json!({"error":error.to_string()}))).into_response(),
+    }
 }
 
 async fn branch_poll(

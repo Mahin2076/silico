@@ -21,6 +21,7 @@ pub mod hydra;
 pub mod insforge;
 pub mod lifestyle;
 pub mod memory;
+pub mod memory_evaluation;
 pub mod model;
 pub mod news;
 pub mod parse;

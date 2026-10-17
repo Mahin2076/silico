@@ -121,6 +121,12 @@ export const createBranch = (simId, { ticks = PREDICT.branch_ticks, event, name,
     signal,
   });
 
+// Live, isolated pair over the current simulation population. Never use demo fixtures.
+export const compareMemory = (branchId, payload, signal) => {
+  if (isDemo) return Promise.reject(new Error("Memory comparison requires a live backend and city memory; offline demo is unsupported."));
+  return req(`/branches/${encodeURIComponent(branchId)}/memory-comparison`, {method:"POST",body:payload,signal,timeout:360000});
+};
+
 // Poll the synthetic electorate. The LLM pass takes ~5-15s.
 export const poll = (branchId, payload, signal) =>
   req(`/branches/${encodeURIComponent(branchId)}/poll`, {

@@ -175,6 +175,10 @@ async fn contract_all_endpoints() {
     if !live {
         let r = c.get(format!("{base}/branches/{main_branch}/agents/0/memory")).send().await.unwrap();
         assert_eq!(r.status(), 503, "persona memory GET without memory -> 503");
+        let r = c.post(format!("{base}/branches/{main_branch}/memory-comparison"))
+            .json(&serde_json::json!({"question":"Support this?", "as_of_date":"2026-10-17", "model":"gpt-4o"}))
+            .send().await.unwrap();
+        assert_eq!(r.status(), 503, "comparison without memory must not produce fixture answers");
     }
 
     // ---- POST /simulations with AND-combined demographic filters ----

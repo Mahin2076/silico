@@ -150,9 +150,14 @@
             <div class="ask-modes" role="radiogroup" aria-label="Question type">
               <button type="button" class="ask-mode" role="radio" data-mode="predict" aria-checked="true" title="Ask one question">Predict</button>
               <button type="button" class="ask-mode" role="radio" data-mode="experiment" aria-checked="false" title="Plan, compare, verify, and repair scenarios">Experiment</button>
+              <button type="button" class="ask-mode" role="radio" data-mode="memory" aria-checked="false" title="Compare the same residents with memory off and on">Memory compare</button>
               <button type="button" class="ask-mode" role="radio" data-mode="ab" aria-checked="false" title="Compare two messages with the same audience">A/B</button>
             </div>
             <p id="experiment-hint" class="experiment-hint" hidden>Whole-city comparison <span class="experiment-shortcuts"><button id="experiment-demo" type="button">Try demo</button><button id="experiment-results" type="button" aria-controls="map-experiment-panel" aria-expanded="false">Results</button></span></p>
+            <div id="memory-fields" class="ask-fields" hidden>
+              <label>Observed yes share, if known (%) <input id="memory-reference" type="number" min="0" max="100" step="any" placeholder="Optional"></label>
+              <small>Runs two live model passes on these residents. Without a reference, results show change, not accuracy. Add dated city events in Timeline first.</small>
+            </div>
             <div id="ab-fields" class="ask-fields" hidden>
               <textarea id="ab-a" class="ask-field" rows="2" maxlength="4000" placeholder="Variant A" aria-label="Variant A"></textarea>
               <textarea id="ab-b" class="ask-field" rows="2" maxlength="4000" placeholder="Variant B" aria-label="Variant B"></textarea>
@@ -303,6 +308,6 @@
 
   <script src="backend-config.js?v=1"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script type="module" src="src/app.js?v=p1-geography-2"></script>
+  <script type="module" src="src/app.js?v=memory-compare-p1-geography-2"></script>
 </body>
 </html>

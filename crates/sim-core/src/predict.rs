@@ -385,7 +385,7 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
 
     /// Run a poll over a population. Returns weighted result + breakdowns + CI.
     pub async fn run_poll(&self, pop: &Population, poll: &Poll) -> Result<PollResult> {
-        self.run_poll_inner(pop, poll, None, false, &TestTag::poll()).await
+        self.run_poll_inner(pop, poll, None, false, &TestTag::poll(), None).await
     }
 
     /// Same as `run_poll`, with provenance for the memory layer (kind, sim, branch).
@@ -395,7 +395,20 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
         poll: &Poll,
         tag: &TestTag,
     ) -> Result<PollResult> {
-        self.run_poll_inner(pop, poll, None, false, tag).await
+        self.run_poll_inner(pop, poll, None, false, tag, None).await
+    }
+
+    /// Same Census population and aggregation; frozen evidence, no recall/write or mutable external context.
+    pub(crate) async fn run_isolated_poll(
+        &self,
+        pop: &Population,
+        poll: &Poll,
+        context: &crate::memory_evaluation::EvaluationContext,
+    ) -> Result<PollResult> {
+        let mut isolated = self.clone();
+        isolated.memory = None;
+        isolated.hydra = None;
+        isolated.run_poll_inner(pop, poll, None, true, &TestTag::poll(), Some(context)).await
     }
 
     pub async fn run_ab_test(
@@ -437,7 +450,7 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
             memory::StimulusRecord { label: "A".into(), text: variant_a.to_string() },
             memory::StimulusRecord { label: "B".into(), text: variant_b.to_string() },
         ];
-        self.run_poll_inner(pop, &poll, Some(&stimuli), true, &tag).await
+        self.run_poll_inner(pop, &poll, Some(&stimuli), true, &tag, None).await
     }
 
     async fn run_poll_inner(
@@ -447,6 +460,7 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
         ab_stimuli: Option<&AbStimuli<'_>>,
         fail_on_model_error: bool,
         tag: &TestTag,
+        evaluation: Option<&crate::memory_evaluation::EvaluationContext>,
     ) -> Result<PollResult> {
         let model = poll.model();
         let clusters = cluster_agents(pop, self.max_clusters);
@@ -463,7 +477,9 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
                 tracing::warn!("persona memory: population registration failed: {e:#}");
             }
         }
-        let memory_by_rep: HashMap<usize, String> = if let Some(mem) = &self.memory {
+        let memory_by_rep: HashMap<usize, String> = if let Some(context) = evaluation {
+            context.memory_by_rep.clone()
+        } else if let Some(mem) = &self.memory {
             let rep_ids: Vec<u32> = clusters.iter().map(|c| pop.agents[c.rep_idx].id).collect();
             match mem
                 .recall(&tag.workspace(), &pop.profile.slug, &pop_key, &rep_ids, &poll.as_of_date)
@@ -492,12 +508,12 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
         let sys = Self::system_prompt(poll.framing, &pop.profile, ab_stimuli.is_some());
         // Inject today's news into ordinary live polls only. A/B tests are isolated
         // from mutable/news UI state and use only the immutable population context.
-        let news_block = if ab_stimuli.is_none() && poll.as_of_date.as_str() >= "2025-06-01" {
+        let news_block = if evaluation.is_none() && ab_stimuli.is_none() && poll.as_of_date.as_str() >= "2025-06-01" {
             crate::news::prompt_block(&pop.profile.slug)
         } else {
             String::new()
         };
-        let (hydra_block, hydra_evidence) = if let Some(hydra) = &self.hydra {
+        let (hydra_block, hydra_evidence) = if let Some(hydra) = self.hydra.as_ref().filter(|_| evaluation.is_none()) {
             let query = format!(
                 "City: {}\nQuestion: {}\nNeutral description: {}\nRetrieve only factual demographic, survey, civic, and news context relevant to this prediction.",
                 pop.profile.prompt_name, poll.question, poll.description
@@ -592,6 +608,16 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
                 Ok(text) => {
                     if let Ok(v) = extract_json(&text) {
                         if let Some(arr) = v.as_array() {
+                            if evaluation.is_some()
+                                && (arr.len() != idxs.len()
+                                    || arr.iter().enumerate().any(|(k, item)| {
+                                        item.get("i").and_then(|i| i.as_u64()) != Some((k + 1) as u64)
+                                            || !item.get("p_yes").and_then(|p| p.as_f64())
+                                                .is_some_and(|p| p.is_finite() && (0.0..=1.0).contains(&p))
+                                    }))
+                            {
+                                return Err(anyhow!("Memory comparison received incomplete, misordered or invalid archetype answers"));
+                            }
                             for (k, item) in arr.iter().enumerate() {
                                 if k >= idxs.len() {
                                     break;
@@ -643,6 +669,19 @@ p_yes is a probability between 0 and 1. Be realistic and calibrated to {city_nam
         } else {
             n_answered as f64 / clusters.len() as f64
         };
+        if evaluation.is_some() && n_answered != clusters.len() {
+            return Err(anyhow!("Memory comparison requires all archetypes: {n_answered}/{} answered", clusters.len()));
+        }
+        if let Some(context) = evaluation {
+            let mut trace = context.answers.lock().map_err(|_| anyhow!("comparison trace unavailable"))?;
+            *trace = clusters.iter().enumerate().map(|(ci,c)| crate::memory_evaluation::ArchetypeAnswer {
+                representative_id: pop.agents[c.rep_idx].id,
+                member_ids: c.member_idx.iter().map(|&i| pop.agents[i].id).collect(),
+                p_yes: if is_options { dist_by_cluster[ci].first().copied().unwrap_or(0.0) } else { p_by_cluster[ci] },
+                rationale: rationale[ci].clone(),
+                memory_context: memory_by_rep.get(&c.rep_idx).cloned().unwrap_or_default(),
+            }).collect();
+        }
         let min_coverage = if fail_on_model_error { 0.80 } else { 0.20 };
         if n_batches > 0 && coverage < min_coverage {
             let detail = last_error

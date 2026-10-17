@@ -24,6 +24,7 @@ import { buildVerifiedDataModel, renderVerifiedData, bindVerifiedData, reduceVer
 import { snapshotAudience, describeAudience, audienceHeader, audienceScope } from "./audience.js";
 import { initFeedPanel, refreshFeedPanel, lineageItems } from "./feedpanel.js?v=18";
 import { initTour, startTour } from "./tour.js?v=1";
+import { createMapMemoryComparison, previewArchetypes } from "./map-memory-comparison.js";
 import { createMapExperiments } from "./map-experiments.js";
 import { isFreshWorkspace, WORKSPACE } from "./workspace.js?v=2";
 
@@ -209,8 +210,9 @@ map.onNeedChatter = requestChatter;
 const isBusy = () => state.phase === "waiting" || state.phase === "reveal";
 const inputOpen = () => els.ask.dataset.state === "input";
 
-const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test", experiment: "experiment" };
+const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test", experiment: "experiment", memory: "memory compare" };
 const ASK_MODE_PLACEHOLDER = {
+  memory: "Ask a yes/no question to compare memory off and on…",
   experiment: "What should we test? e.g. compare a vegetarian lunch at $8, $10, and $12",
   predict: "Ask the city a question…",
   ab: "Which message makes you more likely to support this proposal?",
@@ -219,7 +221,7 @@ const ASK_MODE_PLACEHOLDER = {
 function setAsk(s) {
   els.ask.dataset.state = s;
   els.askLabel.textContent = s === "busy"
-    ? (state.queryMode === "verified" ? "querying data…" : state.askMode === "ab" ? "testing A/B…" : state.askMode === "marketing" ? "testing the post…" : "predicting…")
+    ? (state.queryMode === "verified" ? "querying data…" : state.askMode === "memory" ? "comparing memory…" : state.askMode === "ab" ? "testing A/B…" : state.askMode === "marketing" ? "testing the post…" : "predicting…")
     : ASK_MODE_LABEL[state.askMode] || "ask";
 }
 
@@ -227,6 +229,8 @@ function setAsk(s) {
 // switching never leaves the place the question is typed.
 function setAskMode(mode) {
   state.askMode = mode;
+  if (mode !== "memory") memoryComparison.close();
+  $("memory-fields").hidden = mode !== "memory";
   document.body.classList.toggle("experiment-mode", mode === "experiment");
   if (mode !== "experiment") mapExperiments.close();
   els.ask.dataset.mode = mode;
@@ -235,7 +239,7 @@ function setAskMode(mode) {
   els.abFields.hidden = mode !== "ab";
   els.marketingFields.hidden = mode !== "marketing";
   els.askInput.placeholder = ASK_MODE_PLACEHOLDER[mode];
-  els.askInput.setAttribute("aria-label", mode === "experiment" ? "Experiment goal" : mode === "ab" ? "Evaluation question" : mode === "marketing" ? "Target question" : "Predict anything");
+  els.askInput.setAttribute("aria-label", mode === "memory" ? "Memory comparison question" : mode === "experiment" ? "Experiment goal" : mode === "ab" ? "Evaluation question" : mode === "marketing" ? "Target question" : "Predict anything");
   els.askError.textContent = "";
   if (els.ask.dataset.state !== "busy") setAsk(els.ask.dataset.state);
 }
@@ -558,6 +562,7 @@ async function boot() {
     onLeave: () => {
       map.stop();
       mapExperiments.close();
+      memoryComparison.close();
       if (filterOpen()) closeFilters(false);
       closePersonaModal();
       closeAbout();
@@ -1236,6 +1241,7 @@ async function runPrediction(question) {
     catch (error) { els.askError.textContent = error.message; }
     return;
   }
+  if (state.askMode === "memory") return runMemoryComparison(question);
   if (state.askMode === "ab") return runAbTest();
   if (state.askMode === "marketing") return runMarketingTest();
   if (looksLikeVerifiedQuestion(question)) return runVerifiedQuery(question);
@@ -2110,6 +2116,32 @@ function escapeHtml(s) {
 }
 
 const typingTarget = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+
+const memoryComparison = createMapMemoryComparison({
+  request: api.compareMemory,
+  getContext: () => ({branch:state.mainBranch,city:state.city?.display || citySlug(),asOf:PREDICT.as_of_date,model:PREDICT.model}),
+  returnFocus: () => els.askInput.focus(),
+  onPreview: (answers,question,context) => {
+    if(context.branch!==state.mainBranch)return;
+    map.onProgress=null;map.onRevealComplete=null;
+    const dots=previewArchetypes(map.agents,answers,question);
+    map.startReveal(dots.map(d=>d.verdict),0);
+    map.agents.forEach((agent,i)=>{agent.rationale=dots[i].rationale;});
+  },
+});
+async function runMemoryComparison(question) {
+  if(isBusy() || state.switching)return;
+  if(!state.mainBranch){els.askError.textContent="Wait for the city residents to load.";return;}
+  const raw=$("memory-reference").value.trim(),reference=raw===""?null:Number(raw)/100;
+  if(reference!==null && (!Number.isFinite(reference)||reference<0||reference>1)){els.askError.textContent="Observed share must be between 0 and 100%.";return;}
+  state.queryMode="simulation";
+  cleanupBranch();hide(els.resultCard);hide(els.summary);mapExperiments.close();
+  state.phase="waiting";state.abort=new AbortController();setAsk("busy");els.askError.textContent="";
+  const signal=state.abort.signal;
+  try{await memoryComparison.run(question,reference,signal);}
+  catch(error){if(!signal.aborted)els.askError.textContent=error.message;}
+  finally{if(state.abort?.signal===signal){state.abort=null;state.phase="idle";setAsk("input");setIdleStatus();}}
+}
 
 const mapExperiments = createMapExperiments({
   getCity: () => state.city?.slug || "sf",

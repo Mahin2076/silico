@@ -1375,3 +1375,9 @@ body:not(.timeline-page) #feed-panel { display: none !important; }
   .timeline-link { top: 20px; right: 12px; padding: 0 12px; }
   .title-select { max-width: calc(100vw - 150px); }
 }
+
+/* Memory comparison stays in the map composer and uses its neutral controls. */
+#memory-fields { color:var(--ink-2); font-size:12px; padding:6px 0; }
+#memory-fields label { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+#memory-reference { width:100px; padding:5px 8px; border:1px solid #0002; border-radius:8px; background:#ffffff90; font:inherit; color:inherit; }
+#memory-fields small { line-height:1.5; }
