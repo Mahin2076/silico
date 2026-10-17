@@ -1,3 +1,4 @@
+import { planQuestion } from "./question-plan.js";
 import { createGeography } from "./geography.js";
 // ─────────────────────────────────────────────────────────────────────────
 // sim francisco · pixel-map frontend · orchestration
@@ -55,7 +56,6 @@ const els = {
   toast: $("toast"),
   askSubmit: $("ask-submit"),
   askExtra: document.querySelector(".ask-extra"),
-  askModes: document.querySelector(".ask-modes"),
   askError: $("ask-error"),
   abFields: $("ab-fields"),
   abA: $("ab-a"),
@@ -211,13 +211,6 @@ const isBusy = () => state.phase === "waiting" || state.phase === "reveal";
 const inputOpen = () => els.ask.dataset.state === "input";
 
 const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test", experiment: "experiment", memory: "memory compare" };
-const ASK_MODE_PLACEHOLDER = {
-  memory: "Ask a yes/no question to compare memory off and on…",
-  experiment: "What should we test? e.g. compare a vegetarian lunch at $8, $10, and $12",
-  predict: "Ask the city a question…",
-  ab: "Which message makes you more likely to support this proposal?",
-  marketing: "Do you support the proposed transit measure?",
-};
 function setAsk(s) {
   els.ask.dataset.state = s;
   els.askLabel.textContent = s === "busy"
@@ -225,8 +218,7 @@ function setAsk(s) {
     : ASK_MODE_LABEL[state.askMode] || "ask";
 }
 
-// One composer, three question types. The type row lives inside the box, so
-// switching never leaves the place the question is typed.
+// One composer; the local plan selects the existing execution path.
 function setAskMode(mode) {
   state.askMode = mode;
   if (mode !== "memory") memoryComparison.close();
@@ -234,12 +226,11 @@ function setAskMode(mode) {
   document.body.classList.toggle("experiment-mode", mode === "experiment");
   if (mode !== "experiment") mapExperiments.close();
   els.ask.dataset.mode = mode;
-  for (const b of els.askModes.querySelectorAll(".ask-mode")) b.setAttribute("aria-checked", b.dataset.mode === mode ? "true" : "false");
-  $("experiment-hint").hidden = mode !== "experiment";
+  $("experiment-hint").hidden = false;
   els.abFields.hidden = mode !== "ab";
   els.marketingFields.hidden = mode !== "marketing";
-  els.askInput.placeholder = ASK_MODE_PLACEHOLDER[mode];
-  els.askInput.setAttribute("aria-label", mode === "memory" ? "Memory comparison question" : mode === "experiment" ? "Experiment goal" : mode === "ab" ? "Evaluation question" : mode === "marketing" ? "Target question" : "Predict anything");
+  els.askInput.placeholder = "Ask anything: compare prices, test messages, explore a decision…";
+  els.askInput.setAttribute("aria-label", "Ask the city");
   els.askError.textContent = "";
   if (els.ask.dataset.state !== "busy") setAsk(els.ask.dataset.state);
 }
@@ -1077,6 +1068,13 @@ function openInput({ mode = "predict", preserve = false } = {}) {
   } else if (mode === "marketing" && state.lastMarketingInput) {
     els.askInput.value = state.lastMarketingInput.question; els.marketingCopy.value = state.lastMarketingInput.marketingText;
   }
+  if (preserve && mode === 'ab' && state.lastAbInput && planQuestion(els.askInput.value).mode !== 'ab') {
+    els.askInput.value = `Compare two messages: ${state.lastAbInput.question}`;
+  }
+  updateQuestionPlan();
+  if (preserve && mode === 'ab' && state.lastAbInput) {
+    els.abA.value = state.lastAbInput.variant_a; els.abB.value = state.lastAbInput.variant_b;
+  }
   setAsk("input");
   state.phase = "idle";
   setIdleStatus();
@@ -1092,13 +1090,14 @@ function closeInput() {
   els.askError.textContent = "";
   setComposerBusy(false);
   setAskMode("predict");
+  updateQuestionPlan();
 }
 
 // While an A/B or post test runs, the composer's extra fields stay put but
 // cannot be edited; the send button doubles as the busy indicator.
 function setComposerBusy(busy) {
   els.ask.setAttribute("aria-busy", busy ? "true" : "false");
-  for (const f of [els.askInput, els.abA, els.abB, els.marketingCopy]) f.disabled = busy;
+  for (const f of [els.askInput, els.abA, els.abB, els.marketingCopy, $("memory-question")]) f.disabled = busy;
   els.askSubmit.disabled = busy;
 }
 
@@ -1228,20 +1227,43 @@ function renderActiveVerified() {
 // their shape; everything else is a simulated prediction. Mirrors the backend's
 // data_query grammar ("show the age distribution", "show population by race",
 // "what share of adults …", "how many …").
-const VERIFIED_QUESTION = /\b(distribution|population(?: counts)? by|what share of|what percent(?:age)? of|how many)\b/i;
 function looksLikeVerifiedQuestion(question) {
-  return VERIFIED_QUESTION.test(question || "");
+  return planQuestion(question).mode === "data";
+}
+
+let lastPlannedQuestion = '';
+function updateQuestionPlan() {
+  const question = els.askInput.value.trim(), plan = planQuestion(question);
+  const mode = plan.mode === 'data' ? 'predict' : plan.mode;
+  if (state.askMode !== mode) setAskMode(mode);
+  if (lastPlannedQuestion !== question) {
+    // Never reuse another question's variants or outcome silently.
+    els.abA.value = plan.variants?.[0] || '';
+    els.abB.value = plan.variants?.[1] || '';
+    $('memory-question').value = plan.outcome || '';
+    lastPlannedQuestion = question;
+    els.askError.textContent = '';
+  }
+  $('question-plan-label').textContent = plan.label;
+  $('question-plan-description').textContent = plan.clarification || plan.description;
+  return plan;
 }
 
 async function runPrediction(question) {
   question = (question || "").trim();
-  if (!question) return;
+  if (!question || isBusy() || state.switching) return;
+  const plan = updateQuestionPlan();
+  if (plan.clarification) { els.askError.textContent = plan.clarification; return; }
   if (state.askMode === "experiment") {
     try { await mapExperiments.runGoal(question); }
     catch (error) { els.askError.textContent = error.message; }
     return;
   }
-  if (state.askMode === "memory") return runMemoryComparison(question);
+  if (state.askMode === "memory") {
+    const outcome = $('memory-question').value.trim();
+    if (!outcome) { els.askError.textContent = 'What yes/no decision should residents answer with memory off and on?'; $('memory-question').focus(); return; }
+    return runMemoryComparison(outcome);
+  }
   if (state.askMode === "ab") return runAbTest();
   if (state.askMode === "marketing") return runMarketingTest();
   if (looksLikeVerifiedQuestion(question)) return runVerifiedQuery(question);
@@ -2096,7 +2118,7 @@ function showRephrase(parsed, question) {
     btn.addEventListener("click", () => {
       const text = btn.textContent;
       openInput();
-      requestAnimationFrame(() => { els.askInput.value = text; els.askInput.focus(); autoGrow(); });
+      requestAnimationFrame(() => { els.askInput.value = text; updateQuestionPlan(); els.askInput.focus(); autoGrow(); });
     });
   });
   wireResultActions();
@@ -2171,13 +2193,6 @@ els.ask.addEventListener("click", (e) => {
   if (!els.askExtra.contains(e.target)) els.askInput.focus();
 });
 els.askInput.addEventListener("focus", () => { if (!isBusy() && !inputOpen()) setAsk("input"); });
-els.askModes.addEventListener("click", (e) => {
-  const b = e.target.closest(".ask-mode");
-  if (!b) return;
-  e.stopPropagation();
-  setAskMode(b.dataset.mode);
-  (b.dataset.mode === "ab" && els.askInput.value ? els.abA : b.dataset.mode === "marketing" && els.askInput.value ? els.marketingCopy : els.askInput).focus();
-});
 // Enter sends the question; in the variant / post fields Enter is a newline.
 for (const f of [els.abA, els.abB, els.marketingCopy]) {
   f.addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runPrediction(els.askInput.value); } });
@@ -2191,7 +2206,7 @@ els.ask.addEventListener("keydown", (event) => {
 els.askInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runPrediction(els.askInput.value); }
 });
-els.askInput.addEventListener("input", autoGrow);
+els.askInput.addEventListener("input", () => { autoGrow(); updateQuestionPlan(); });
 
 
 els.returnBtn.addEventListener("click", () => { map.returnToOverview(); });
@@ -2338,7 +2353,7 @@ document.addEventListener("keydown", (e) => {
     else if (charOpen()) closeCharCard();
     else if (isBusy()) cancelPrediction();
     else if (state.phase === "results" || !els.resultCard.classList.contains("hidden")) dismissResults();
-    else if (els.askInput.value) { els.askInput.value = ""; autoGrow(); els.askError.textContent = ""; }
+    else if (els.askInput.value) { els.askInput.value = ""; autoGrow(); updateQuestionPlan(); els.askError.textContent = ""; }
     else if (typingTarget(document.activeElement)) document.activeElement.blur();
     else if (map.zoomedIn) map.returnToOverview();
   } else if (e.key === "k" && (e.metaKey || e.ctrlKey)) {

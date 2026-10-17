@@ -137,7 +137,7 @@
             <span id="ask-label" class="ask-label">ask</span>
             <textarea id="ask-input" class="ask-input" rows="1" autocomplete="off" spellcheck="false"
                       placeholder="Ask the city a question…"
-                      aria-label="Predict anything"></textarea>
+                      aria-label="Ask the city"></textarea>
             <button id="ask-submit" class="ask-send" type="button" aria-label="Send" title="Send the question (Enter)">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -145,16 +145,12 @@
               </svg>
             </button>
           </div>
-          <!-- question type + the extra fields each type needs; shown while composing -->
+          <!-- Selected method and only the extra information that method needs. -->
           <div class="ask-extra">
-            <div class="ask-modes" role="radiogroup" aria-label="Question type">
-              <button type="button" class="ask-mode" role="radio" data-mode="predict" aria-checked="true" title="Ask one question">Predict</button>
-              <button type="button" class="ask-mode" role="radio" data-mode="experiment" aria-checked="false" title="Plan, compare, verify, and repair scenarios">Experiment</button>
-              <button type="button" class="ask-mode" role="radio" data-mode="memory" aria-checked="false" title="Compare the same residents with memory off and on">Memory compare</button>
-              <button type="button" class="ask-mode" role="radio" data-mode="ab" aria-checked="false" title="Compare two messages with the same audience">A/B</button>
-            </div>
-            <p id="experiment-hint" class="experiment-hint" hidden>Whole-city comparison <span class="experiment-shortcuts"><button id="experiment-demo" type="button">Try demo</button><button id="experiment-results" type="button" aria-controls="map-experiment-panel" aria-expanded="false">Results</button></span></p>
+            <div id="question-plan" class="question-plan" role="status" aria-live="polite" aria-atomic="true"><strong id="question-plan-label">Ask anything</strong><p id="question-plan-description">Ask a question. I’ll choose the method and show the plan here.</p></div>
+            <p id="experiment-hint" class="experiment-hint"> <span class="experiment-shortcuts"><button id="experiment-demo" type="button">Try demo</button><button id="experiment-results" type="button" aria-controls="map-experiment-panel" aria-expanded="false">Results</button></span></p>
             <div id="memory-fields" class="ask-fields" hidden>
+              <label>Question to compare (yes/no) <textarea id="memory-question" class="ask-field" rows="2" placeholder="Would residents support the transit proposal?" aria-label="Memory outcome question"></textarea></label>
               <label>Observed yes share, if known (%) <input id="memory-reference" type="number" min="0" max="100" step="any" placeholder="Optional"></label>
               <small>Runs two live model passes on these residents. Without a reference, results show change, not accuracy. Add dated city events in Timeline first.</small>
             </div>
@@ -308,6 +304,6 @@
 
   <script src="backend-config.js?v=1"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script type="module" src="src/app.js?v=memory-compare-p1-geography-2"></script>
+  <script type="module" src="src/app.js?v=question-plan-1"></script>
 </body>
 </html>

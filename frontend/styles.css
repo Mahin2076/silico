@@ -1381,3 +1381,9 @@ body:not(.timeline-page) #feed-panel { display: none !important; }
 #memory-fields label { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 #memory-reference { width:100px; padding:5px 8px; border:1px solid #0002; border-radius:8px; background:#ffffff90; font:inherit; color:inherit; }
 #memory-fields small { line-height:1.5; }
+
+/* The inferred method stays visible before the user sends a question. */
+.question-plan { padding: 3px 2px; font: 12px/1.5 var(--font); color: #4a514e; }
+.question-plan strong { color: var(--ink); font-weight: 600; }
+.question-plan p { margin: 3px 0 0; }
+.ask-fields[hidden] { display: none; }

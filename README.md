@@ -52,7 +52,7 @@ The basic experiment runner and native P2 integration already exist. The uncheck
 
 ### Run the P1 experiment lab locally
 
-P1 includes **Experiment mode in the city map’s input box**, with compact results, saved receipts, and a deterministic failure-and-repair demo. Select Experiment, type your goal, and send; use Try demo for a fixture run without API calls. Assumptions and checks expand under Details. The standalone lab remains available for development. From the repository root:
+P1 includes **automatic experiment selection in the city map’s input box**, with compact results, saved receipts, and a deterministic failure-and-repair demo. Type your question, read the selected method, and send; use Try demo for a fixture run without API calls. Assumptions and checks expand under Details. The standalone lab remains available for development. From the repository root:
 
 ```sh
 mkdir -p runs
@@ -61,9 +61,25 @@ PORT=8083 TILES_DB=server_tiles/sf.db CACHE_DB=runs/cache.db STATE_DB=runs/state
 python3 -m http.server 5176 --bind 127.0.0.1 --directory frontend
 ```
 
-Open [the city map](http://localhost:5176/index.html?backend=local&port=8083) and select **Experiment**. Demo mode needs no API key. Try demo deliberately omits one scenario so you can see detection → targeted repair → a labeled demo receipt. Live mode uses server-side `CRUSOE_API_KEY` and `CRUSOE_MODEL`; the integrated Nemotron P2 verifier runs automatically and must pass before completion. Keep `VERIFIER_URL` empty for native P2; optionally set `SILICO_VERIFIER_MODEL` to another supported Nemotron ID. Full review evidence is saved with each receipt. A native verifier can request a targeted You.com search, have the planner write a cited assessment, and independently recheck that assessment against the original objection and source excerpts; configure `YOU_API_KEY` on the backend. The map shows the original objection, assessment, limitations, sources, and recheck. Research does not change the frozen simulation results. Each run permits one search, and unresolved evidence cannot complete it. Set variables in the shell or the ignored `.env` file (which overrides shell values). The new lab always defaults to the local backend.
+Open [the city map](http://localhost:5176/index.html?backend=local&port=8083) and ask a comparison question such as **“Compare $8, $10, and $12 lunches.”** Demo mode needs no API key. Try demo deliberately omits one scenario so you can see detection → targeted repair → a labeled demo receipt. Live mode uses server-side `CRUSOE_API_KEY` and `CRUSOE_MODEL`; the integrated Nemotron P2 verifier runs automatically and must pass before completion. Keep `VERIFIER_URL` empty for native P2; optionally set `SILICO_VERIFIER_MODEL` to another supported Nemotron ID. Full review evidence is saved with each receipt. A native verifier can request a targeted You.com search, have the planner write a cited assessment, and independently recheck that assessment against the original objection and source excerpts; configure `YOU_API_KEY` on the backend. The map shows the original objection, assessment, limitations, sources, and recheck. Research does not change the frozen simulation results. Each run permits one search, and unresolved evidence cannot complete it. Set variables in the shell or the ignored `.env` file (which overrides shell values). The new lab always defaults to the local backend.
 
 The integration boundary, schemas, limitations, and test commands are in [P1–P2 contract](docs/P1-P2-CONTRACT.md). Plan revision requests stop for user input and require a new run. Completed execution verifies the workflow, not predictive accuracy. See the [live research verification report](docs/LIVE-RESEARCH-VERIFICATION.md) for the observed repair, failures, recovery, and test results.
+
+### One question box
+
+The city composer chooses a method locally as you type and shows its plan before
+submission. Price/scenario comparisons use the verified experiment runner;
+message comparisons use the existing A/B runner; memory questions compare the
+same yes/no outcome with memory off/on; population questions use Census data;
+other questions use a single prediction. Routing adds no model calls.
+
+For message comparisons, include two quoted ads or fill in the two message fields
+that appear. For memory comparisons, put the outcome after a colon or supply it
+in the outcome field. Missing inputs and unsupported combinations stop before
+API calls. One experiment currently supports two or three whole-city scenarios.
+The router uses phrase rules, so check the displayed method and rephrase if needed.
+Only the experiment runner has the independent Nemotron completion gate; ordinary
+predictions, A/B, and memory comparisons retain their existing checks and limits.
 
 ### P1 — Execute and explain the agent loop (`p1`)
 
@@ -125,7 +141,7 @@ Mahin Bharathwaj.
 
 ## Shared Brain: proposed extension
 
-**Implemented on the city map:** the **Memory compare** composer tab runs the current Census population with memory off/on through the real prediction engine. It shows weighted results, archetype evidence, and an optional comparison against an observed reference. See [setup, API, and limitations](docs/MEMORY-COMPARISON.md). The shared research/versioning system below remains planned work.
+**Implemented on the city map:** asking **“Compare memory on vs off: Would residents support this proposal?”** runs the current Census population with memory off/on through the real prediction engine. It shows weighted results, archetype evidence, and an optional comparison against an observed reference. See [setup, API, and limitations](docs/MEMORY-COMPARISON.md). The shared research/versioning system below remains planned work.
 
 Research agents gather information about housing, transit, and local policies, then write their findings into a common memory that simulated residents consult when making decisions. Findings include sources and dates; verified corrections supersede outdated facts, while conflicting reports stay flagged until resolved. Residents keep their individual preferences. Compare the same unseen scenarios with and without memory to measure factual accuracy, stale claims, and duplicated research. This addresses Shared Brain: agents read and update shared knowledge, keep it consistent and current, and demonstrate whether sharing it improves results.
 
