@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "request_hash": "194a1f5c2da9d86d3e082fc1b5acde2c3014e550fb429341c3cc76c9f921f853",
+  "repair_round": 0,
+  "verdict": "blocked",
+  "summary": "The conclusion claims causal impact and predictive accuracy for real residents, violating synthetic-data limitations and the decision.caveat check. Assumptions are not sufficiently explicit about the fixture nature limiting generalizability.",
+  "findings": [
+    {
+      "check_id": "p2.input_integrity",
+      "status": "pass",
+      "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid.",
+      "evidence": [
+        {
+          "pointer": "/plan"
+        },
+        {
+          "pointer": "/goal"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.scenario_coverage",
+      "status": "pass",
+      "summary": "Every planned scenario has exactly one complete result.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.context_consistency",
+      "status": "pass",
+      "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash.",
+      "evidence": [
+        {
+          "pointer": "/plan/context"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.audience_consistency",
+      "status": "pass",
+      "summary": "Result audience IDs match their corresponding scenarios.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "coverage.complete",
+      "status": "pass",
+      "summary": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "status": "pass",
+      "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.deterministic_checks",
+      "status": "pass",
+      "summary": "Required deterministic findings are present, evidenced, and passing.",
+      "evidence": [
+        {
+          "pointer": "/plan/completion_checks"
+        },
+        {
+          "pointer": "/deterministic_findings"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.evidence_completeness",
+      "status": "pass",
+      "summary": "Completed results contain payloads and conclusions are available for review.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        },
+        {
+          "pointer": "/conclusions"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.goal_alignment",
+      "status": "pass",
+      "summary": "Scenarios compare message A and B for the same frozen adult audience as required by the goal.",
+      "evidence": [
+        {
+          "pointer": "/goal"
+        },
+        {
+          "pointer": "/plan/scenarios/0/id"
+        },
+        {
+          "pointer": "/plan/scenarios/1/id"
+        },
+        {
+          "pointer": "/plan/scenarios/0/description"
+        },
+        {
+          "pointer": "/plan/scenarios/1/description"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "status": "repair",
+      "summary": "Assumptions state the fixture tests software behavior only and uses equal weight, but do not explicitly state that results cannot generalize to real populations or that the fixture lacks predictive validity for real-world decisions.",
+      "evidence": [
+        {
+          "pointer": "/plan/assumptions/0"
+        },
+        {
+          "pointer": "/plan/assumptions/1"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "status": "blocked",
+      "summary": "Conclusion claims message B causes all real San Francisco residents to support the policy with guaranteed predictive accuracy, which is not supported by the synthetic fixture results (0.6 vs 0.65 weighted yes share) and violates synthetic-data limitations.",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        },
+        {
+          "pointer": "/results/0/payload/weighted_yes_share"
+        },
+        {
+          "pointer": "/results/1/payload/weighted_yes_share"
+        }
+      ]
+    },
+    {
+      "check_id": "decision.caveat",
+      "status": "blocked",
+      "summary": "Conclusion claims real-world causal impact and predictive accuracy, failing to report the comparison as a labeled software fixture without real-world claims.",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        },
+        {
+          "pointer": "/plan/completion_checks/2/id"
+        }
+      ]
+    }
+  ],
+  "repair_requests": [
+    {
+      "id": "revise-assumptions-and-conclusion-1",
+      "action": "revise_plan",
+      "check_ids": [
+        "p2.explicit_assumptions"
+      ],
+      "scenario_ids": [],
+      "reason": "Update assumptions to explicitly state the fixture lacks predictive validity and cannot generalize to real populations or support causal claims about real residents."
+    },
+    {
+      "id": "revise-conclusion-1",
+      "action": "request_clarification",
+      "check_ids": [
+        "p2.conclusion_support",
+        "decision.caveat"
+      ],
+      "scenario_ids": [],
+      "reason": "Conclusion must be revised to only compare modeled support between messages A and B as a synthetic fixture, state that message B has higher modeled support (0.65 vs 0.6), and explicitly note the results are synthetic estimates with no causal or predictive validity for real-world populations."
+    }
+  ],
+  "receipt": {
+    "mode": "live",
+    "provider": "crusoe-via-openshell",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 1,
+    "elapsed_ms": 10753,
+    "error_code": null
+  }
+}

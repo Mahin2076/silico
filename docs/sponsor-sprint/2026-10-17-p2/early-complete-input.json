@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "120980bcc5d4d78aa72a525a7fd414da8bcd1b3151509943caea5f823accc2b1",
+  "repair_round": 0,
+  "goal": "Compare synthetic responses to message A and message B for the same frozen adult audience; state which message has the higher modeled support and preserve synthetic-data limitations.",
+  "plan": {
+    "context": {
+      "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+      "model": "fixture-only-no-live-simulation",
+      "as_of_date": "2026-10-17",
+      "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+      "seed": 42
+    },
+    "assumptions": [
+      "This labeled synthetic fixture tests software behavior only; it is not an observed survey or evidence of predictive validity.",
+      "Messages are shown to the same frozen synthetic adult audience; every archetype has equal weight in this fixture."
+    ],
+    "scenarios": [
+      {
+        "id": "message-a",
+        "description": "Show message A: Save on everyday transit.",
+        "audience_id": "sf-adults-fixture"
+      },
+      {
+        "id": "message-b",
+        "description": "Show message B: More reliable transit.",
+        "audience_id": "sf-adults-fixture"
+      }
+    ],
+    "completion_checks": [
+      {
+        "id": "coverage.complete",
+        "description": "All planned archetype answers are present in every completed scenario.",
+        "kind": "deterministic",
+        "required": true
+      },
+      {
+        "id": "weights.valid",
+        "description": "Probability vectors and weighted aggregation pass P1 deterministic validation.",
+        "kind": "deterministic",
+        "required": true
+      },
+      {
+        "id": "decision.caveat",
+        "description": "The conclusion reports the A/B comparison as a labeled software fixture and does not claim real-world public support or causal impact.",
+        "kind": "semantic",
+        "required": true
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "result-message-a",
+      "scenario_id": "message-a",
+      "plan_hash": "120980bcc5d4d78aa72a525a7fd414da8bcd1b3151509943caea5f823accc2b1",
+      "context": {
+        "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+        "model": "fixture-only-no-live-simulation",
+        "as_of_date": "2026-10-17",
+        "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+        "seed": 42
+      },
+      "audience_id": "sf-adults-fixture",
+      "status": "complete",
+      "payload": {
+        "fixture": true,
+        "weighted_yes_share": 0.6,
+        "n_archetypes_expected": 2,
+        "n_archetypes_answered": 2,
+        "probability_vectors_valid": true,
+        "aggregation_checked_by_p1": true
+      }
+    },
+    {
+      "id": "result-message-b",
+      "scenario_id": "message-b",
+      "plan_hash": "120980bcc5d4d78aa72a525a7fd414da8bcd1b3151509943caea5f823accc2b1",
+      "context": {
+        "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+        "model": "fixture-only-no-live-simulation",
+        "as_of_date": "2026-10-17",
+        "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+        "seed": 42
+      },
+      "audience_id": "sf-adults-fixture",
+      "status": "complete",
+      "payload": {
+        "fixture": true,
+        "weighted_yes_share": 0.65,
+        "n_archetypes_expected": 2,
+        "n_archetypes_answered": 2,
+        "probability_vectors_valid": true,
+        "aggregation_checked_by_p1": true
+      }
+    }
+  ],
+  "deterministic_findings": [
+    {
+      "check_id": "coverage.complete",
+      "passed": true,
+      "detail": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "scenario_ids": [
+        "message-a",
+        "message-b"
+      ],
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "passed": true,
+      "detail": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "scenario_ids": [
+        "message-a",
+        "message-b"
+      ],
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    }
+  ],
+  "conclusions": [
+    "In this labeled synthetic software fixture, B has 65% modeled support versus A at 60%, a five percentage point difference. This does not measure real residents, demonstrate causal effects, or establish predictive accuracy; real-world decisions require validation with people."
+  ]
+}

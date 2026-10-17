@@ -1,0 +1,558 @@
+    Blocking waiting for file lock on build directory
+   Compiling libc v0.2.186
+   Compiling libm v0.2.16
+   Compiling num-traits v0.2.19
+   Compiling jobserver v0.1.34
+   Compiling cc v1.2.64
+   Compiling zerocopy v0.8.52
+   Compiling simd-adler32 v0.3.9
+   Compiling zerocopy-derive v0.8.52
+   Compiling miniz_oxide v0.8.9
+   Compiling flate2 v1.1.9
+   Compiling aho-corasick v1.1.4
+   Compiling regex-automata v0.4.14
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling libsqlite3-sys v0.28.0
+   Compiling ahash v0.8.12
+   Compiling hashbrown v0.14.5
+   Compiling hashlink v0.9.1
+   Compiling rusqlite v0.31.0
+   Compiling errno v0.3.14
+   Compiling memchr v2.8.2
+   Compiling crossbeam-utils v0.8.21
+   Compiling rustix v0.38.44
+   Compiling rustix v1.1.4
+   Compiling home v0.5.12
+   Compiling regex-syntax v0.8.11
+   Compiling either v1.16.0
+   Compiling which v4.4.2
+   Compiling zstd-safe v7.2.4
+   Compiling zstd v0.13.3
+   Compiling crossbeam-epoch v0.9.18
+   Compiling rayon-core v1.13.0
+   Compiling log v0.4.32
+   Compiling crossbeam-deque v0.8.6
+   Compiling regex v1.12.4
+   Compiling glob v0.3.3
+   Compiling clang-sys v1.8.1
+   Compiling equator-macro v0.4.2
+   Compiling prettyplease v0.2.37
+   Compiling equator v0.4.2
+   Compiling num-integer v0.1.46
+   Compiling byteorder v1.5.0
+   Compiling protobuf v3.7.2
+   Compiling minimal-lexical v0.2.1
+   Compiling nom v7.1.3
+   Compiling num-bigint v0.4.6
+   Compiling aligned-vec v0.6.4
+   Compiling rayon v1.12.0
+   Compiling getrandom v0.4.2
+   Compiling protobuf-support v3.7.2
+   Compiling libloading v0.8.9
+   Compiling arrayvec v0.7.6
+   Compiling bindgen v0.66.1
+   Compiling heapless v0.8.0
+   Compiling thiserror v2.0.18
+   Compiling tempfile v3.27.0
+   Compiling v_frame v0.3.9
+   Compiling num-rational v0.4.2
+   Compiling cexpr v0.6.0
+   Compiling hash32 v0.3.1
+   Compiling xattr v1.6.1
+   Compiling filetime v0.2.29
+   Compiling as-slice v0.2.1
+   Compiling thiserror-impl v2.0.18
+   Compiling rustc-hash v1.1.0
+   Compiling paste v1.0.15
+   Compiling peeking_take_while v0.1.2
+   Compiling av-scenechange v0.14.1
+   Compiling shlex v1.3.0
+   Compiling built v0.8.1
+   Compiling lazycell v1.3.0
+   Compiling rav1e v0.8.1
+   Compiling aligned v0.4.3
+   Compiling tar v0.4.46
+   Compiling protobuf-parse v3.7.2
+   Compiling cmake v0.1.58
+   Compiling nom v8.0.0
+   Compiling no_std_io2 v0.9.4
+   Compiling profiling-procmacros v1.0.18
+   Compiling arg_enum_proc_macro v0.3.4
+   Compiling quick-error v2.0.1
+   Compiling pastey v0.1.1
+   Compiling y4m v0.8.0
+   Compiling av1-grain v0.2.5
+   Compiling profiling v1.0.18
+   Compiling bitstream-io v4.10.0
+   Compiling proj-sys v0.23.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling rstar v0.12.2
+   Compiling maybe-rayon v0.1.1
+   Compiling itertools v0.14.0
+   Compiling half v2.7.1
+   Compiling approx v0.5.1
+   Compiling num-derive v0.4.2
+   Compiling simd_helpers v0.1.0
+   Compiling new_debug_unreachable v1.0.6
+   Compiling allocator-api2 v0.2.21
+   Compiling weezl v0.1.12
+   Compiling zune-core v0.5.1
+   Compiling imgref v1.12.2
+   Compiling foldhash v0.2.0
+   Compiling noop_proc_macro v0.3.0
+   Compiling loop9 v0.1.5
+   Compiling hashbrown v0.16.1
+   Compiling zune-jpeg v0.5.15
+   Compiling geo-types v0.7.19
+   Compiling osmpbf v0.3.8
+   Compiling avif-serialize v0.8.9
+   Compiling itertools v0.11.0
+   Compiling zune-inflate v0.2.54
+   Compiling fdeflate v0.3.7
+   Compiling byteorder-lite v0.1.0
+   Compiling robust v1.2.0
+   Compiling color_quant v1.1.0
+   Compiling rgb v0.8.53
+   Compiling pxfm v0.1.29
+   Compiling bit_field v0.10.3
+   Compiling bytemuck v1.25.0
+   Compiling fax v0.2.7
+   Compiling lebe v0.5.3
+   Compiling exr v1.74.0
+   Compiling moxcms v0.8.1
+   Compiling tiff v0.11.3
+   Compiling qoi v0.4.1
+   Compiling ravif v0.13.0
+   Compiling gif v0.14.2
+   Compiling spade v2.15.1
+   Compiling png v0.18.1
+   Compiling image-webp v0.2.4
+   Compiling env_filter v1.0.1
+   Compiling earcutr v0.4.3
+   Compiling ring v0.17.14
+   Compiling geographiclib-rs v0.2.7
+   Compiling memmap2 v0.5.10
+   Compiling jiff v0.2.28
+   Compiling float_next_after v1.0.0
+   Compiling geo v0.28.0
+   Compiling env_logger v0.11.10
+   Compiling proj v0.27.2
+   Compiling image v0.25.10
+   Compiling sim-maps v0.1.0 (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/outputs/silico/crates/sim-maps)
+   Compiling rustls v0.23.40
+   Compiling rustls-webpki v0.103.13
+   Compiling compression-codecs v0.4.38
+   Compiling async-compression v0.4.42
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.3.1
+   Compiling tower-http v0.6.11
+   Compiling tokio-rustls v0.26.4
+   Compiling hyper-rustls v0.27.9
+   Compiling matchers v0.2.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling reqwest v0.12.28
+   Compiling rand v0.8.6
+   Compiling chrono v0.4.45
+   Compiling simfrancisco v0.1.0 (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/outputs/silico/crates/sim-core)
+warning: unused variable: `features`
+  --> crates/sim-maps/tests/phase4.rs:27:9
+   |
+27 |     let features = FeatureIndex::empty();
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `features`
+  --> crates/sim-maps/tests/phase4.rs:46:9
+   |
+46 |     let features = FeatureIndex::empty();
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+
+warning: unused variable: `features`
+  --> crates/sim-maps/tests/phase4.rs:67:9
+   |
+67 |     let features = FeatureIndex::empty();
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+
+warning: unused variable: `features`
+  --> crates/sim-maps/tests/phase4.rs:84:9
+   |
+84 |     let features = FeatureIndex::empty();
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+
+warning: unused variable: `features`
+   --> crates/sim-maps/tests/phase4.rs:100:9
+    |
+100 |     let features = FeatureIndex::empty();
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+
+warning: unused variable: `features`
+   --> crates/sim-maps/tests/phase4.rs:119:9
+    |
+119 |     let features = FeatureIndex::empty();
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_features`
+
+warning: `sim-maps` (test "phase4") generated 6 warnings (run `cargo fix --test "phase4" -p sim-maps` to apply 6 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 1m 39s
+     Running unittests src/lib.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/sim_maps-bccaf5f0543e5834)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/build_atlas.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/build_atlas-bfee6b0140ceb0c3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/build_facade_atlas.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/build_facade_atlas-fcf4a63d48fa9055)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/demo_pngs.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/demo_pngs-595b12df7b150ff4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/export_map.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/export_map-ed173b7aa00aec3d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/pipeline-45b08d4591c34638)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/verify.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/verify-eb1750551802fddd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase1.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase1-b624476e9aab2f52)
+
+running 2 tests
+test blob_round_trip ... ok
+test multi_lod_batch ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/phase2.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase2-6f0b85a8f5f9d31f)
+
+running 9 tests
+test average_elevation_flat_region ... ok
+test average_elevation_mixed_region ... ok
+test walkable_slope_below_threshold ... ok
+test flat_terrain_has_zero_rise ... ok
+test cliff_edge_detected ... ok
+test flat_dem_sample_center ... ok
+test out_of_bounds_returns_none ... ok
+test bilinear_interpolation_midpoint ... ok
+test sample_grid_utm_on_synthetic ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase3.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase3-bcdae19ace1a85f0)
+
+running 12 tests
+test non_highway_returns_none ... ok
+test highway_pedestrian_is_sidewalk ... ok
+test highway_footway_is_path ... ok
+test highway_primary_is_road ... ok
+test detect_walls_on_isolated_square ... ok
+test water_overwrites_road ... ok
+test building_overwrites_park ... ok
+test road_paints_cells_within_buffer ... ok
+test area_outside_building_is_grass ... ok
+test building_interior_is_floor ... ok
+test building_boundary_cells_are_wall ... ok
+test dump_png_creates_file ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase4.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase4-8164517fe3b77c4a)
+
+running 10 tests
+test elevation_bands_min_is_zero ... ok
+test elevation_bands_max_is_seven ... ok
+test gentle_slope_stays_grass ... ok
+test compute_max_rise_detects_step ... ok
+test steep_grass_becomes_cliff ... ok
+test building_floor_is_immune_to_cliff ... ok
+test building_footprint_is_flattened ... ok
+test water_is_immune_to_cliff ... ok
+test steep_path_becomes_stairs ... ok
+test steep_road_becomes_stairs ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase5.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase5-a4dadd07df8ed288)
+
+running 22 tests
+test all_cardinals_is_variant_21 ... ok
+test autotile_grid_checkerboard_all_isolated ... ok
+test autotile_grid_uniform_5x5_all_variant_46 ... ok
+test e_only_is_variant_2 ... ok
+test fully_surrounded_is_variant_46 ... ok
+test fully_surrounded_normalises_to_0xff ... ok
+test isolated_is_variant_0 ... ok
+test fully_surrounded_center_in_uniform_grid ... ok
+test isolated_water_in_3x3_grass_grid ... ok
+test exactly_47_distinct_variants_in_table ... ok
+test n_only_is_variant_1 ... ok
+test north_neighbour_only ... ok
+test oob_treated_as_same_class ... ok
+test render_tile_id_encodes_variant ... ok
+test render_tile_id_preserves_class ... ok
+test s_only_is_variant_5 ... ok
+test suppress_all_corners_when_edges_absent ... ok
+test suppress_keeps_valid_corner ... ok
+test suppress_ne_without_east_edge ... ok
+test suppress_ne_without_north_edge ... ok
+test variant_count_constant_is_47 ... ok
+test w_only_is_variant_13 ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase6.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase6-bcedfa122438dd1c)
+
+running 18 tests
+test collision_max_pool_picks_highest_cost ... ok
+test collision_uniform_walkable_stays_walkable ... ok
+test factor_4_reduces_to_correct_size ... ok
+test from_u8_round_trips_all_classes ... ok
+test from_u8_unknown_defaults_to_grass ... ok
+test lod1_then_lod2_matches_direct_factor4 ... ok
+test lod4_size_for_125_cells ... ok
+test majority_class_wins ... ok
+test non_divisible_border_block_uses_available_cells ... ok
+test non_divisible_width_rounds_up ... ok
+test single_cell_grid_factor_2_produces_1x1 ... ok
+test lod5_size_for_125_cells ... ok
+test lod3_size_for_125_cells ... ok
+test tie_broken_by_higher_precedence ... ok
+test uniform_grid_stays_same_class ... ok
+test lod2_size_for_125_cells ... ok
+test lod1_size_for_125_cells ... ok
+test collision_size_matches_semantic_downsample ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase7.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase7-fd10279e177aa117)
+
+running 17 tests
+test at_or_above_threshold_no_modifier ... ok
+test blocked_cells_unchanged_by_slope ... ok
+test cost_never_reaches_blocked_from_modifier ... ok
+test building_floor_blocked_ignores_slope ... ok
+test flat_elevation_zero_rise ... ok
+test flat_terrain_no_modifier ... ok
+test gentle_slope_adds_one ... ok
+test grass_on_flat_has_base_cost ... ok
+test grass_on_gentle_slope_adds_one ... ok
+test grass_on_steep_slope_adds_two ... ok
+test modifier_scales_with_threshold ... ok
+test road_cost_flat_zero ... ok
+test road_on_steep_slope_gets_modifier ... ok
+test slope_cost_applied_through_rise_grid ... ok
+test steep_slope_adds_two ... ok
+test step_edge_has_expected_rise ... ok
+test zero_threshold_does_not_panic ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase8.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/phase8-c68c198fbac8a9ed)
+
+running 5 tests
+test parallel_slope_collision_consistent ... ok
+test rayon_and_sequential_max_rise_match ... ok
+test parallel_chunk_count_matches_grid_size ... ok
+test parallel_all_grass_chunks_are_uniform_grass ... ok
+test parallel_matches_serial_for_empty_features ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/simfrancisco-ee8965a89b34db5e)
+
+running 86 tests
+test aggregate::tests::equal_weights_is_plain_mean ... ok
+test aggregate::tests::soft_indicators_average ... ok
+test aggregate::tests::design_effect_unequal_greater_than_one ... ok
+test aggregate::tests::design_effect_equal_weights_is_one ... ok
+test aggregate::tests::tv_distance_basic ... ok
+test aggregate::tests::weights_change_the_estimate ... ok
+test aggregate::tests::distribution_sums_to_one ... ok
+test aggregate::tests::option_breakdown_zero_weight_uses_uniform_fallback ... ok
+test aggregate::tests::option_breakdown_is_weighted_normalized_and_stable ... ok
+test aggregate::tests::breakdown_groups_correctly ... ok
+test api::tests::population_filters_combine_age_area_occupation_and_education ... ok
+test geo::tests::utm_corner_matches_bbox ... ok
+test geo::tests::utm_roundtrip_sf ... ok
+test api::tests::ab_request_validation_rejects_bad_inputs ... ok
+test api::tests::counterfactual_rejects_invalid_selectors_and_oversized_fields ... ok
+test api::tests::counterfactual_rejects_options_and_oversized_copy ... ok
+test api::tests::counterfactual_wraps_marketing_copy_as_quoted_data ... ok
+test evidence::tests::unknown_metadata_is_explicit_even_for_a_dated_custom_path ... ok
+test memory::population_key_tests::workspace_keys_are_scoped_and_public_is_bare ... ok
+test evidence::tests::hydra_states_never_change_the_claim_class ... ok
+test evidence::tests::response_preserves_all_legacy_values_when_hydra_is_unavailable ... ok
+test memory::tests::empty_memory_renders_nothing ... ok
+test memory::tests::attach_deltas_links_same_question_and_framing_only ... ok
+test memory::tests::http_base_maps_aura_and_plain_uris ... ok
+test memory::seeded_id_tests::seeded_ids_are_stable_and_workspace_specific ... ok
+test insforge::tests::builds_a_small_persistence_record_without_secrets ... ok
+test memory::population_key_tests::filtered_populations_get_distinct_keys ... ok
+test memory::tests::data_query_items_serialize_and_do_not_break_deltas ... ok
+test memory::tests::sentiment_tally_counts_only_present_keys ... ok
+test memory::tests::keys_are_stable ... ok
+test model::retry_hint_tests::detects_daily_quota ... ok
+test model::retry_hint_tests::parses_gemini_hints ... ok
+test memory::tests::test_record_keeps_breakdowns_for_the_chart ... ok
+test model::tests::extract_json_strips_fences ... ok
+test parse::tests::supported_router_response_requires_a_question ... ok
+test memory::tests::fragment_labels_news_stimulus_and_tests ... ok
+test memory::tests::fragment_is_bounded ... ok
+test parse::tests::supported_router_response_trims_the_question ... ok
+test pathfind::tests::octile_distance ... ok
+test model::tests::extract_responses_message_skips_reasoning ... ok
+test model::tests::extract_chat_completions ... ok
+test model::tests::model_parse_and_shape ... ok
+test memory::tests::endpoint_follows_api_choice ... ok
+test model::tests::extract_gemini_interaction ... ok
+test predict::personal_answer_tests::garbage_yields_nothing ... ok
+test predict::personal_answer_tests::parses_binary_and_drops_bad_rows ... ok
+test predict::tests::ab_prompt_keeps_stimuli_json_escaped_and_data_only ... ok
+test predict::personal_answer_tests::parses_options_and_renormalises ... ok
+test predict::tests::canonical_segments_have_stable_values_and_use_population_cutoffs ... ok
+test predict::tests::cross_axes_splits_only_intersectional_dimensions ... ok
+test predict::tests::cross_tab_sorts_by_left_axis_then_right_axis ... ok
+test predict::tests::new_single_dimensions_use_canonical_order ... ok
+test predict::tests::option_groups_follow_semantic_order ... ok
+test predict::tests::salvage_truncated_reaction_array ... ok
+test predict::tests::unknown_keys_sort_deterministically_after_known_ones ... ok
+test pums::tests::derived_categories ... ok
+test pums::tests::income_adjustment_applied ... ok
+test pums::tests::parse_line_strips_quotes ... ok
+test religion::tests::deterministic_given_seed ... ok
+test predict::tests::turnout_increases_with_age_and_education ... ok
+test rocketride::tests::normalizes_direct_router_response ... ok
+test rocketride::tests::normalizes_json_string_inside_answers_lane ... ok
+test rocketride::tests::normalizes_response_lane_array ... ok
+test rocketride::tests::rejects_supported_response_without_a_question ... ok
+test rocketride::tests::rejects_unrelated_response ... ok
+test rocketride::tests::posts_router_payload_and_reads_webhook_response ... ok
+test rubric::tests::brier_and_market_scoring ... ok
+test rubric::tests::counterfactual_direction ... ok
+test rubric::tests::election_scoring_curve ... ok
+test rubric::tests::weighting_headline_respects_weights_and_zeros ... ok
+test persona::tests::deterministic_population ... ok
+test sim::tests::value_distance_symmetric ... ok
+test sim::tests::broadcast_reactions_split_by_values ... ok
+test state::tests::hash_changes_on_mutation ... ok
+test state::tests::hash_is_order_independent_after_canonicalize ... ok
+test state::tests::json_roundtrip_bitforbit ... ok
+test store::tests::commit_restore_roundtrip_bitforbit ... ok
+test store::tests::branch_does_not_mutate_main ... ok
+test store::tests::reset_to_main_restores_exact_hash ... ok
+test persona::tests::sf_is_progressive_on_average ... ok
+test persona::tests::income_quintiles_monotonic ... ok
+test persona::tests::marginals_match_population ... ok
+test predict::tests::clustering_bounds_count ... ok
+test religion::tests::unaffiliated_is_plurality_overall ... ok
+test religion::tests::hispanic_skews_catholic_in_aggregate ... ok
+test aggregate::tests::bootstrap_ci_brackets_point_estimate ... ok
+
+test result: ok. 86 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running unittests src/bin/daemon.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/daemon-3319961edfd719de)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/ingest_pums.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/ingest_pums-4d5e00b4c0fa1d0e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/server.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/server-656c518c9526ac4d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/validate.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/validate-71c3f5314a8af120)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/contract-5e0aa241aaf75436)
+
+running 1 test
+test contract_all_endpoints ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.27s
+
+     Running tests/data_query.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/data_query-abbdf2f51283c741)
+
+running 7 tests
+test cached_official_archive_hashes_match_when_raw_sources_are_supplied ... ok
+test unsupported_and_ambiguous_requests_never_return_numbers ... ok
+test http_endpoint_needs_no_simulation_and_rejects_changed_source ... ok
+test accepted_plan_is_deterministic_and_uses_full_denominator ... ok
+test actual_backend_responses_satisfy_frontend_contract ... ok
+test source_hashes_and_missingness_are_verified_and_alterations_are_rejected ... ok
+test every_dimension_matches_independent_full_csv_counts_and_percentages ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 46.65s
+
+     Running tests/memory_neo4j.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/memory_neo4j-d7b9043c72a3c279)
+
+running 1 test
+test neo4j_memory_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/verifier.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/verifier-f9fb393edc57afdc)
+
+running 17 tests
+test verifier::tests::configuration_does_not_leak_keys_or_accept_an_unrelated_model ... ok
+test verifier::tests::complete_fixture_reviews_once_and_cannot_claim_live_completion ... ok
+test verifier::tests::exhausted_repairs_block_but_a_final_round_can_still_pass ... ok
+test verifier::tests::plan_revisions_invalidate_previously_completed_results ... ok
+test verifier::tests::missing_duplicated_and_invented_review_checks_are_blocked ... ok
+test verifier::tests::real_http_adapter_checks_status_size_model_and_finish_reason ... ok
+test verifier::tests::local_defects_never_spend_a_model_call ... ok
+test verifier::tests::receipt_cannot_be_reused_for_changed_results ... ok
+test verifier::tests::model_identity_must_echo_every_binding ... ok
+test verifier::tests::malformed_output_never_becomes_a_pass ... ok
+test verifier::tests::actionable_review_produces_only_targeted_supported_repairs ... ok
+test verifier::tests::provider_failures_are_explicit_and_have_no_fallback_or_retries ... ok
+test verifier::tests::malformed_envelopes_are_blocked_without_inference ... ok
+test verifier::tests::verdict_cannot_contradict_findings_or_pending_repairs ... ok
+test verifier::tests::evidence_must_exist_and_cannot_cite_its_own_verdict ... ok
+test verifier::tests::timeout_cancels_a_slow_transport ... ok
+test verifier::tests::concurrency_queue_is_included_in_deadline ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+   Doc-tests sim_maps
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests simfrancisco
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

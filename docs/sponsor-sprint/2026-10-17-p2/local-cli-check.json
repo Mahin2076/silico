@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-17T18:01:21.365154+00:00",
+  "checks": [
+    {
+      "fixture": "missing-scenario",
+      "exit_code": 3,
+      "verdict": "repair",
+      "mode": "local",
+      "model_calls": 0
+    },
+    {
+      "fixture": "audience-mismatch",
+      "exit_code": 3,
+      "verdict": "repair",
+      "mode": "local",
+      "model_calls": 0
+    },
+    {
+      "fixture": "complete",
+      "exit_code": 0,
+      "verdict": "pass",
+      "mode": "mock",
+      "model_calls": 1
+    }
+  ]
+}

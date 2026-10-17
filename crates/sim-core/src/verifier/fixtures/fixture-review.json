@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "request_hash": "b58fd8feb72883d33da99d4081c58432c11734d137666a1f8a982a218eac9a56",
+  "repair_round": 0,
+  "verdict": "pass",
+  "summary": "Explicit fixture review for contract development; not a live provider result.",
+  "findings": [
+    {
+      "check_id": "p2.goal_alignment",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "decision.caveat",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    }
+  ],
+  "repair_requests": []
+}

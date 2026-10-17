@@ -1,0 +1,2 @@
+   Compiling simfrancisco v0.1.0 (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/outputs/silico/crates/sim-core)
+    Finished `dev` profile [unoptimized] target(s) in 2.50s
