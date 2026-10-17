@@ -45,7 +45,7 @@ export function createMapExperiments({ getCity, validateAudience, returnFocus })
           <h3>Assumptions</h3><div id="assumptions"></div>
           <h3>Completion checks</h3><div id="checks"></div>
           <h3>Run history</h3><ol id="events"></ol>
-          <div class="actions"><button id="export">Download receipt</button><button id="export-verifier" disabled>Verifier input</button></div>
+          <div class="actions"><button id="retry-verifier" class="secondary" hidden>Retry verification</button><button id="export">Download receipt</button><button id="export-verifier" disabled>Verifier input</button></div>
           <details><summary>Context</summary><pre id="context"></pre></details>
           <h3>Saved runs</h3><div id="history"></div>
         </details>

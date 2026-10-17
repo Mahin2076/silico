@@ -86,6 +86,43 @@ impl Store {
         )?;
         Ok(())
     }
+    /// Claim a verification retry under the same lock as cancellation/worker saves.
+    pub fn claim_verification(&self, ws: &str, id: &str) -> Result<Option<Run>> {
+        let db = self.0.lock().unwrap();
+        let body: Option<String> = db
+            .query_row(
+                "SELECT body FROM experiment_runs WHERE workspace=? AND id=?",
+                params![ws, id],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let Some(body) = body else { return Ok(None) };
+        let mut run: Run = serde_json::from_str(&body)?;
+        ensure!(
+            super::p2::can_retry(&run),
+            "This run is not eligible for another verification attempt"
+        );
+        ensure!(
+            !super::checks::checks(&run).is_empty()
+                && super::checks::checks(&run)
+                    .iter()
+                    .all(|c| c.status == "pass"),
+            "Saved results failed integrity checks"
+        );
+        super::p2::request(&run)?;
+        run.status = "verifying".into();
+        run.error = None;
+        run.verifier = None;
+        run.event(
+            "verifying",
+            "Verification retry requested; reusing the original simulation results",
+        );
+        db.execute(
+            "UPDATE experiment_runs SET body=? WHERE workspace=? AND id=?",
+            params![serde_json::to_string(&run)?, ws, id],
+        )?;
+        Ok(Some(run))
+    }
     pub fn cancel(&self, ws: &str, id: &str) -> Result<Option<Run>> {
         let db = self.0.lock().unwrap();
         let body: Option<String> = db

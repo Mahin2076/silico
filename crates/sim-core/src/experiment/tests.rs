@@ -80,6 +80,7 @@ fn fixture() -> Run {
         answers: BTreeMap::new(),
         checks: vec![],
         verifier: None,
+        p2_reviews: vec![],
         events: vec![],
         usage: Usage::default(),
         error: None,
@@ -93,6 +94,7 @@ fn service(base: String, verifier_url: Option<String>) -> Service {
         client: CrusoeClient::new(base, "fixture-key".into(), "fixture".into()).unwrap(),
         verifier_url,
         verifier_token: None,
+        p2: None,
         slots: Arc::new(tokio::sync::Semaphore::new(2)),
     }
 }
@@ -362,7 +364,7 @@ async fn http_planning_receipt_and_idempotency_contract() {
     let counter = plans.clone();
     let mock=axum::Router::new().route("/v1/chat/completions",axum::routing::post(move|axum::Json(body):axum::Json<Value>|{let counter=counter.clone();async move{
         let input:Value=serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
-        let content=if input.get("archetypes").is_none(){counter.fetch_add(1,Ordering::SeqCst);json!({"scenarios":fixture().plan.unwrap().scenarios})}else{json!({"answers":input["archetypes"].as_array().unwrap().iter().map(|g|json!({"archetype_id":g["id"],"probabilities":[0.7,0.3]})).collect::<Vec<_>>()})};
+        let content=if input.get("archetypes").is_none(){counter.fetch_add(1,Ordering::SeqCst);json!({"question":"Choose this?","options":["Yes","No"],"scenarios":fixture().plan.unwrap().scenarios.iter().map(|s|json!({"scenario_id":s.scenario_id,"description":s.description,"assumptions":s.assumptions})).collect::<Vec<_>>()})}else{json!({"answers":input["archetypes"].as_array().unwrap().iter().map(|g|json!({"archetype_id":g["id"],"probabilities":[0.7,0.3]})).collect::<Vec<_>>()})};
         axum::Json(json!({"choices":[{"message":{"content":content.to_string()}}],"usage":{"prompt_tokens":10,"completion_tokens":10}}))
     }})).route("/verify",axum::routing::post(|axum::Json(req):axum::Json<VerifierRequest>|async move{axum::Json(passing(&req))}));
     let (model_url, model_task) = serve(mock).await;
@@ -464,7 +466,7 @@ async fn http_planning_receipt_and_idempotency_contract() {
         last.plan.as_ref().unwrap().context_hash,
         hash(&last.context)
     );
-    let req: VerifierRequest = client
+    let req: crate::verifier::VerificationRequest = client
         .get(format!(
             "{url}/experiments/{}/verifier-request",
             first.run_id
@@ -477,7 +479,7 @@ async fn http_planning_receipt_and_idempotency_contract() {
         .await
         .unwrap();
     assert_eq!(req.run_id, first.run_id);
-    assert_eq!(req.deterministic_checks.len(), 12);
+    assert_eq!(req.deterministic_findings.len(), 12);
     server_task.abort();
     model_task.abort();
 }
@@ -513,5 +515,234 @@ async fn semantic_repairs_receive_feedback_and_clarification_stops() {
     assert_eq!(r.status, "needs_input");
     assert_eq!(r.round, 0);
     assert_eq!(r.error.as_deref(), Some("Please specify the audience"));
+    task.abort();
+}
+
+struct NativeFixture {
+    repair: bool,
+}
+impl crate::verifier::VerifierTransport for NativeFixture {
+    fn identity(&self) -> crate::verifier::TransportIdentity {
+        crate::verifier::TransportIdentity {
+            mode: "mock".into(),
+            provider: "adapter-test".into(),
+            model: crate::verifier::DEFAULT_MODEL.into(),
+        }
+    }
+    fn complete<'a>(&'a self, _: &'a str, user: &'a str) -> crate::verifier::CompletionFuture<'a> {
+        Box::pin(async move {
+            let e: Value = serde_json::from_str(user).unwrap();
+            let repair = self.repair && e["repair_round"] == 0;
+            let findings:Vec<_> = e["required_checks"].as_array().unwrap().iter().map(|c| json!({"check_id":c["id"],"status":if repair && c["id"] == "p2.conclusion_support" {"repair"} else {"pass"},"summary":"Software fixture only","evidence":[{"pointer":"/results/0/payload"}]})).collect();
+            let repairs = if repair {
+                json!([{"id":"repair-1","action":"rerun_scenario","check_ids":["p2.conclusion_support"],"scenario_ids":["s1"],"reason":"Recheck the estimate using the frozen assumptions"}])
+            } else {
+                json!([])
+            };
+            Ok(crate::verifier::Completion {model:crate::verifier::DEFAULT_MODEL.into(),text:json!({"schema_version":1,"run_id":e["run_id"],"plan_hash":e["plan_hash"],"request_hash":e["request_hash"],"repair_round":e["repair_round"],"verdict":if repair {"repair"} else {"pass"},"summary":"Mock adapter review","findings":findings,"repair_requests":repairs}).to_string()})
+        })
+    }
+}
+fn native_fixture() -> Run {
+    let mut r = fixture();
+    r.context = json!({"seed":42});
+    let p = r.plan.as_mut().unwrap();
+    p.context_hash = hash(&r.context);
+    p.audience_hash = hash(&"fixture population");
+    r.plan_hash = hash(&r.plan);
+    r
+}
+
+#[tokio::test]
+async fn native_bridge_preserves_evidence_and_enforces_live_completion() {
+    let s = service("http://localhost:1/v1".into(), None);
+    let mut r = native_fixture();
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    let request = super::p2::request(&r).unwrap();
+    assert_eq!(request.deterministic_findings.len(), 12);
+    assert_eq!(
+        request.results[0].payload["receipt"],
+        serde_json::to_value(&r.results[0]).unwrap()
+    );
+    assert_eq!(
+        request.results[0].payload["answers"],
+        serde_json::to_value(&r.answers[&r.results[0].scenario_id]).unwrap()
+    );
+    let decision = crate::verifier::Verifier::new(NativeFixture { repair: false })
+        .verify(&request)
+        .await;
+    assert_eq!(
+        decision.verdict,
+        crate::verifier::Verdict::Pass,
+        "{}",
+        decision.summary
+    );
+    let mut review = super::p2::Review { request, decision };
+    assert_eq!(super::p2::response(&r, &review).unwrap().verdict, "blocked");
+    // Unit-test the successful gate with explicit simulated provenance; no live call.
+    review.decision.receipt.mode = "live".into();
+    let response = super::p2::response(&r, &review).unwrap();
+    assert_eq!(response.verdict, "pass");
+    validate_verifier(&r.verifier_request().unwrap(), &response).unwrap();
+    review.decision.request_hash = "f".repeat(64);
+    assert!(super::p2::response(&r, &review).is_err());
+}
+
+#[tokio::test]
+async fn native_bridge_recomputes_checks_and_rejects_stale_results() {
+    let s = service("http://localhost:1/v1".into(), None);
+    let mut r = native_fixture();
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    r.results[0].model = "different-model".into();
+    let request = super::p2::request(&r).unwrap();
+    assert_eq!(request.results[0].context.model, "different-model");
+    assert!(request.deterministic_findings.iter().any(|f| !f.passed));
+    let decision = crate::verifier::Verifier::new(NativeFixture { repair: false })
+        .verify(&request)
+        .await;
+    assert_ne!(decision.verdict, crate::verifier::Verdict::Pass);
+    assert_eq!(decision.receipt.model_calls, 0);
+    r.context["seed"] = json!(43);
+    assert!(super::p2::request(&r).is_err());
+}
+
+#[tokio::test]
+async fn native_runner_targets_repair_and_persists_every_review() {
+    let feedbacks = Arc::new(AtomicUsize::new(0));
+    let seen = feedbacks.clone();
+    let router = axum::Router::new().route("/v1/chat/completions", axum::routing::post(move |axum::Json(body):axum::Json<Value>| {
+        let seen = seen.clone();
+        async move {
+            let input:Value = serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
+            if input["repair_feedback"].as_array().is_some_and(|a| !a.is_empty()) {
+                assert_eq!(input["scenario"]["scenario_id"], "s1");
+                seen.fetch_add(1, Ordering::SeqCst);
+            }
+            let answers:Vec<_> = input["archetypes"].as_array().unwrap().iter().map(|g| json!({"archetype_id":g["id"],"probabilities":[0.5,0.5]})).collect();
+            axum::Json(json!({"choices":[{"message":{"content":json!({"answers":answers}).to_string()}}]}))
+        }
+    }));
+    let (url, task) = serve(router).await;
+    let mut s = service(format!("{url}/v1"), None);
+    s.p2 = Some(crate::verifier::Verifier::new(super::p2::Transport(
+        Box::new(NativeFixture { repair: true }),
+    )));
+    let mut r = native_fixture();
+    r.mode = "live".into();
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    assert_eq!(r.round, 1);
+    assert_eq!(r.usage.requests, 4);
+    assert_eq!(feedbacks.load(Ordering::SeqCst), 1);
+    assert_eq!(r.p2_reviews.len(), 2);
+    assert_eq!(
+        r.p2_reviews[0].request.plan_hash,
+        r.p2_reviews[1].request.plan_hash
+    );
+    assert_eq!(
+        r.status, "needs_input",
+        "mock pass must not complete live run"
+    );
+    assert_eq!(
+        s.store
+            .get(&r.workspace, &r.run_id)
+            .unwrap()
+            .unwrap()
+            .p2_reviews
+            .len(),
+        2
+    );
+    task.abort();
+}
+
+#[test]
+fn old_receipts_load_without_native_reviews() {
+    let mut value = serde_json::to_value(fixture()).unwrap();
+    value.as_object_mut().unwrap().remove("p2_reviews");
+    assert!(serde_json::from_value::<Run>(value)
+        .unwrap()
+        .p2_reviews
+        .is_empty());
+}
+
+#[test]
+fn planner_uses_one_shared_question_and_rejects_per_scenario_overrides() {
+    let mut draft = json!({"question":"Would you buy this lunch?","options":["Yes","No"],"scenarios":[{"scenario_id":"price_8","description":"Lunch at $8","assumptions":["Same meal"]},{"scenario_id":"price_10","description":"Lunch at $10","assumptions":["Same meal"]}]});
+    let scenarios = planned_scenarios(draft.clone()).unwrap();
+    assert_eq!(scenarios[0].question, scenarios[1].question);
+    assert_eq!(scenarios[0].options, scenarios[1].options);
+    draft["scenarios"][0]["assumptions"] = json!("Same meal");
+    assert_eq!(
+        planned_scenarios(draft.clone()).unwrap()[0].assumptions,
+        vec!["Same meal"]
+    );
+    draft["scenarios"][0]["question"] = json!("Would you buy at a different price?");
+    assert!(planned_scenarios(draft).is_err());
+}
+
+#[tokio::test]
+async fn verification_retry_is_claimed_once_and_reuses_saved_results() {
+    let mut s = service("http://127.0.0.1:1/v1".into(), None);
+    let mut r = native_fixture();
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    r.mode = "live".into();
+    r.status = "awaiting_verifier".into();
+    s.store.save(&r).unwrap();
+    let original = serde_json::to_value(&r.results).unwrap();
+    let claimed = s
+        .store
+        .claim_verification(&r.workspace, &r.run_id)
+        .unwrap()
+        .unwrap();
+    assert_eq!(claimed.status, "verifying");
+    assert!(s.store.claim_verification(&r.workspace, &r.run_id).is_err());
+    assert!(s
+        .store
+        .claim_verification("other-workspace", &r.run_id)
+        .unwrap()
+        .is_none());
+    s.store.save(&r).unwrap();
+    s.p2 = Some(crate::verifier::Verifier::new(super::p2::Transport(
+        Box::new(NativeFixture { repair: false }),
+    )));
+    let (url, task) = serve(super::http::routes(Arc::new(s))).await;
+    let client = reqwest::Client::new();
+    let response = client
+        .post(format!("{url}/experiments/{}/verify", r.run_id))
+        .header("X-Simtra-Workspace", &r.workspace)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 202);
+    let mut last = r.clone();
+    for _ in 0..50 {
+        last = client
+            .get(format!("{url}/experiments/{}", r.run_id))
+            .header("X-Simtra-Workspace", &r.workspace)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        if last.status == "needs_input" {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+    }
+    assert_eq!(last.status, "needs_input"); // mock review cannot complete a live run
+    assert_eq!(last.usage.requests, 0, "retry must not rerun simulation");
+    assert_eq!(last.p2_reviews.len(), 1);
+    assert_eq!(serde_json::to_value(&last.results).unwrap(), original);
+    let persisted_review = &last.p2_reviews[0];
+    assert_eq!(crate::verifier::request_hash(&persisted_review.request), persisted_review.decision.request_hash);
+    last.status = "blocked".into();
+    last.p2_reviews[0].decision.receipt.error_code = Some("invalid_review_evidence".into());
+    assert!(super::p2::can_retry(&last));
+    last.p2_reviews = vec![last.p2_reviews[0].clone(); 3];
+    assert!(!super::p2::can_retry(&last));
     task.abort();
 }

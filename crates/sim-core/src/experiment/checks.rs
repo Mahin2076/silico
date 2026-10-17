@@ -26,7 +26,12 @@ pub fn validate_scenarios(scenarios: &[Scenario]) -> Result<()> {
     );
     for s in scenarios {
         ensure!(
-            !s.scenario_id.is_empty() && s.scenario_id.len() <= 40 && ids.insert(&s.scenario_id),
+            !s.scenario_id.is_empty()
+                && s.scenario_id.len() <= 40
+                && s.scenario_id
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+                && ids.insert(&s.scenario_id),
             "Scenario IDs must be unique"
         );
         ensure!(
@@ -291,4 +296,45 @@ pub fn validate_verifier(req: &VerifierRequest, res: &VerifierResponse) -> Resul
         bail!("Repair verdict has no failing checks or repair actions");
     }
     Ok(())
+}
+
+/// One shared measurement definition makes comparison consistency structural.
+pub fn planned_scenarios(value: serde_json::Value) -> Result<Vec<Scenario>> {
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum Assumptions {
+        List(Vec<String>),
+        Text(String),
+    }
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Variation {
+        scenario_id: String,
+        description: String,
+        assumptions: Assumptions,
+    }
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Draft {
+        question: String,
+        options: Vec<String>,
+        scenarios: Vec<Variation>,
+    }
+    let draft: Draft = serde_json::from_value(value)?;
+    let scenarios = draft
+        .scenarios
+        .into_iter()
+        .map(|s| Scenario {
+            scenario_id: s.scenario_id,
+            description: s.description,
+            assumptions: match s.assumptions {
+                Assumptions::List(v) => v,
+                Assumptions::Text(v) => vec![v],
+            },
+            question: draft.question.clone(),
+            options: draft.options.clone(),
+        })
+        .collect::<Vec<_>>();
+    validate_scenarios(&scenarios)?;
+    Ok(scenarios)
 }

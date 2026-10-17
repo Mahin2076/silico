@@ -2,6 +2,7 @@
 pub mod checks;
 pub mod contract;
 mod http;
+pub mod p2;
 mod runner;
 mod store;
 #[cfg(test)]

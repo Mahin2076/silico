@@ -59,7 +59,7 @@ PORT=8083 TILES_DB=server_tiles/sf.db CACHE_DB=runs/cache.db STATE_DB=runs/state
 python3 -m http.server 5176 --bind 127.0.0.1 --directory frontend
 ```
 
-Open [the city map](http://localhost:5176/index.html?backend=local&port=8083) and select **Experiment**. Demo mode needs no API key. Try demo deliberately omits one scenario so you can see detection → targeted repair → a labeled demo receipt. Live mode uses server-side `CRUSOE_API_KEY` and `CRUSOE_MODEL`; an independent P2 verifier is required before a live run can complete. Set variables in the shell or the ignored `.env` file (which overrides shell values). The new lab always defaults to the local backend.
+Open [the city map](http://localhost:5176/index.html?backend=local&port=8083) and select **Experiment**. Demo mode needs no API key. Try demo deliberately omits one scenario so you can see detection → targeted repair → a labeled demo receipt. Live mode uses server-side `CRUSOE_API_KEY` and `CRUSOE_MODEL`; the integrated Nemotron P2 verifier runs automatically and must pass before completion. Keep `VERIFIER_URL` empty for native P2; optionally set `SILICO_VERIFIER_MODEL` to another supported Nemotron ID. Full review evidence is saved with each receipt. Set variables in the shell or the ignored `.env` file (which overrides shell values). The new lab always defaults to the local backend.
 
 The integration boundary, schemas, limitations, and test commands are in [P1–P2 contract](docs/P1-P2-CONTRACT.md). Plan revision requests stop for user input and require a new run. Completed execution verifies the workflow, not predictive accuracy.
 

@@ -35,6 +35,11 @@ A finding needs concrete evidence pointers (RFC 6901) into the supplied request,
 such as /goal, /plan/assumptions/0, /results/0/payload, or /conclusions/0.
 These paths are relative to the nested request OBJECT, not the outer envelope.
 Never prefix a path with /request. Use exact existing array indices and field names.
+The envelope supplies evidence_pointers: existing source locations you may cite.
+Allowed roots are ONLY /goal, /plan, /results, /conclusions, and /web_research/sources.
+NEVER cite /deterministic_findings, a check's passed flag, a review, or a verdict.
+Those are judgments, not supporting source evidence. Cite the underlying scenario,
+assumptions, original result payload, or conclusion instead.
 Do not invent evidence, check IDs, result IDs, scenarios, numbers, or repairs.
 Missing evidence means blocked. An actionable deficiency means repair. Pass only
 when EVERY required check passes. Do not pass simply because a receipt says complete.
@@ -43,6 +48,11 @@ Return ONE JSON object and no Markdown. Required fields:
 schema_version (1), run_id, plan_hash, request_hash, repair_round (copy all identity
 fields EXACTLY from the envelope), verdict (pass|repair|blocked), summary,
 findings [{check_id,status:pass|repair|blocked,summary,evidence:[{pointer}]}],
+Every finding MUST use the property "check_id", never "id". Copy its value from
+required_checks[].id. Example finding shape:
+{"check_id":"p2.goal_alignment","status":"pass","summary":"Your evidence-based assessment","evidence":[{"pointer":"/plan/scenarios"}]}.
+This is a format example, not an instruction to pass the check.
+The remaining required top-level field is
 repair_requests [{id,action:rerun_scenario|revise_plan|request_clarification,
 check_ids:[...],scenario_ids:[...],reason}].
 

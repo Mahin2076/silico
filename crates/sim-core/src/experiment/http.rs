@@ -57,7 +57,17 @@ pub fn router(cities: Arc<HashMap<String, Arc<CityRuntime>>>) -> Router {
         if let Some(u) = &verifier_url {
             validate_url(u)?;
         }
+        let p2 = if verifier_url.is_none()
+            && std::env::var("CRUSOE_API_KEY").is_ok_and(|k| !k.trim().is_empty())
+        {
+            Some(crate::verifier::Verifier::new(super::p2::Transport(
+                Box::new(crate::verifier::CrusoeTransport::from_env()?),
+            )))
+        } else {
+            None
+        };
         Ok(Service {
+            p2,
             cities,
             store: Store::open(
                 &std::env::var("EXPERIMENT_DB").unwrap_or_else(|_| "runs/experiments.db".into()),
@@ -93,6 +103,7 @@ pub(super) fn routes(service: Arc<Service>) -> Router {
         .route("/experiments/:id/receipt", get(read))
         .route("/experiments/:id/verifier-request", get(verifier_request))
         .route("/experiments/:id/cancel", post(cancel))
+        .route("/experiments/:id/verify", post(retry_verification))
         .layer(DefaultBodyLimit::max(16 * 1024))
         .with_state(service)
 }
@@ -100,7 +111,7 @@ async fn config(State(s): State<Arc<Service>>) -> Json<Value> {
     let mut cities: Vec<_> = s.cities.keys().cloned().collect();
     cities.sort();
     Json(
-        json!({"live_ready":s.client.configured() && std::env::var("MODEL_OFFLINE").as_deref()!=Ok("1"),"verifier_ready":s.verifier_url.is_some(),"model":s.client.model,"cities":cities,"max_repair_rounds":2,"max_requests":48,"deadline_seconds":300,"token_reservation_budget":180000}),
+        json!({"live_ready":s.client.configured() && std::env::var("MODEL_OFFLINE").as_deref()!=Ok("1"),"verifier_ready":s.p2.is_some() || s.verifier_url.is_some(),"verifier_model":std::env::var("SILICO_VERIFIER_MODEL").unwrap_or_else(|_|crate::verifier::DEFAULT_MODEL.into()),"max_verifier_requests":3,"verifier_input_limit_bytes":131072,"model":s.client.model,"cities":cities,"max_repair_rounds":2,"max_requests":48,"deadline_seconds":300,"token_reservation_budget":180000}),
     )
 }
 #[derive(Deserialize, serde::Serialize)]
@@ -180,6 +191,7 @@ async fn start(
         answers: BTreeMap::new(),
         checks: vec![],
         verifier: None,
+        p2_reviews: vec![],
         events: vec![],
         usage: Usage::default(),
         error: None,
@@ -246,10 +258,11 @@ async fn verifier_request(
     State(s): State<Arc<Service>>,
     h: HeaderMap,
     Path(id): Path<String>,
-) -> Result<Json<VerifierRequest>, ApiError> {
-    Ok(Json(load(&s, &h, &id)?.verifier_request().ok_or_else(
-        || err(StatusCode::CONFLICT, "Plan is not ready"),
-    )?))
+) -> Result<Json<crate::verifier::VerificationRequest>, ApiError> {
+    let run = load(&s, &h, &id)?;
+    Ok(Json(
+        super::p2::request(&run).map_err(|e| err(StatusCode::CONFLICT, e))?,
+    ))
 }
 async fn cancel(
     State(s): State<Arc<Service>>,
@@ -264,4 +277,45 @@ async fn cancel(
             .map_err(internal)?
             .ok_or_else(|| err(StatusCode::NOT_FOUND, "Experiment not found"))?,
     ))
+}
+
+async fn retry_verification(
+    State(s): State<Arc<Service>>,
+    h: HeaderMap,
+    Path(id): Path<String>,
+) -> Result<(StatusCode, Json<Run>), ApiError> {
+    if s.p2.is_none() || std::env::var("MODEL_OFFLINE").as_deref() == Ok("1") {
+        return Err(err(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Live native verification is not configured",
+        ));
+    }
+    let permit = s.slots.clone().try_acquire_owned().map_err(|_| {
+        err(
+            StatusCode::TOO_MANY_REQUESTS,
+            "Two experiments are already running",
+        )
+    })?;
+    let mut run = s
+        .store
+        .claim_verification(&workspace(&h)?, &id)
+        .map_err(|e| err(StatusCode::CONFLICT, e))?
+        .ok_or_else(|| err(StatusCode::NOT_FOUND, "Experiment not found"))?;
+    let initial = run.clone();
+    tokio::spawn(async move {
+        let _permit = permit;
+        let result = tokio::time::timeout(Duration::from_secs(300), s.verify_saved(&mut run)).await;
+        let error = match result {
+            Ok(Ok(())) => None,
+            Ok(Err(e)) => Some(e.to_string()),
+            Err(_) => Some("Verification retry exceeded its deadline".into()),
+        };
+        if let Some(e) = error {
+            run.status = "blocked".into();
+            run.error = Some(e.clone());
+            run.event("blocked", e);
+            let _ = s.save(&run);
+        }
+    });
+    Ok((StatusCode::ACCEPTED, Json(initial)))
 }

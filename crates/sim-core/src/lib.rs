@@ -11,6 +11,7 @@ pub mod agent;
 pub mod aggregate;
 pub mod city;
 pub mod crusoe;
+pub mod verifier;
 pub mod experiment;
 pub mod data_query;
 pub mod data_source;

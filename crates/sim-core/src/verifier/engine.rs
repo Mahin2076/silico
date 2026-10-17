@@ -159,12 +159,34 @@ impl<T: VerifierTransport> Verifier<T> {
         }
 
         let required = semantic_checks(request);
+        let mut evidence_pointers = vec![
+            "/goal".to_string(),
+            "/plan/assumptions".into(),
+            "/plan/scenarios".into(),
+            "/conclusions".into(),
+        ];
+        evidence_pointers.extend(
+            request
+                .results
+                .iter()
+                .enumerate()
+                .map(|(i, _)| format!("/results/{i}/payload")),
+        );
+        if let Some(web) = &request.web_research {
+            evidence_pointers.extend(
+                web.sources
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| format!("/web_research/sources/{i}")),
+            );
+        }
         let user = json!({
             "schema_version": SCHEMA_VERSION,
             "run_id": request.run_id,
             "plan_hash": request.plan_hash,
             "request_hash": decision.request_hash,
             "repair_round": request.repair_round,
+            "evidence_pointers": evidence_pointers,
             "required_checks": required.iter().map(|(id, description)| json!({"id":id,"description":description})).collect::<Vec<_>>(),
             "request": request,
         }).to_string();

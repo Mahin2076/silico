@@ -37,11 +37,15 @@ function render(r) {
   if (embedded) $('run-mode').textContent = `${r.mode === 'demo' ? 'Demo' : 'Live'} · ${({sf:'San Francisco',neu_york:'New York',synth_la:'Los Angeles',cybercago:'Chicago',simami:'Miami'}[r.city] || r.city)}`;
   $('run-goal').textContent = r.goal;
   $('verifier-summary').hidden = !r.verifier;
-  $('verifier-summary').textContent = r.verifier ? `Verifier: ${r.verifier.summary}` : '';
+  const p2 = r.p2_reviews?.at(-1);
+  $('verifier-summary').textContent = r.verifier ? `${p2 ? 'Nemotron' : 'Verifier'}: ${r.verifier.summary}` : '';
   $('cancel').hidden = terminal.has(r.status);
   $('export-verifier').disabled = !r.plan;
-  $('stats').replaceChildren(...[`${r.residents.toLocaleString()} residents`,`${r.archetypes.length} archetypes`,`${r.round} / 2 repairs`,`${r.usage.requests} model requests`].map(t => node('span',t,'stat')));
-  let notice = r.error || (r.mode === 'demo' ? 'Illustrative fixture probabilities and a simulated verifier. This demonstrates execution and repair; it is not a live prediction.' : r.status === 'awaiting_verifier' ? 'Execution passed, but this run is not complete. Connect P2’s verifier and start a new run.' : 'Hypothetical model estimates. Only the stated assumptions are used; no live research or news is included.');
+  const retryableCodes = new Set(['invalid_review_evidence','malformed_review','review_identity_mismatch','invalid_review_coverage','invalid_repair_request','missing_targeted_repair','inconsistent_review_verdict','timeout','network_error','provider_http_error','rate_limited','authentication_failed','malformed_provider_response','model_mismatch','response_too_large']);
+  $('retry-verifier').hidden = r.mode !== 'live' || (r.p2_reviews || []).length >= 3 || !(r.status === 'awaiting_verifier' || (['blocked','needs_input'].includes(r.status) && retryableCodes.has(p2?.decision.receipt.error_code)));
+  $('retry-verifier').disabled = !ready?.verifier_ready;
+  $('stats').replaceChildren(...[`${r.residents.toLocaleString()} residents`,`${r.archetypes.length} archetypes`,`${r.round} / 2 repairs`,`${r.usage.requests + (r.p2_reviews || []).reduce((n, v) => n + v.decision.receipt.model_calls, 0)} model requests`].map(t => node('span',t,'stat')));
+  let notice = r.error || (r.mode === 'demo' ? 'Illustrative fixture probabilities and a simulated verifier. This demonstrates execution and repair; it is not a live prediction.' : r.status === 'awaiting_verifier' ? 'Execution passed, but this run is not complete. Connect P2’s verifier and retry verification to reuse these results.' : 'Hypothetical model estimates. Only the stated assumptions are used; no live research or news is included.');
   if (embedded && !r.error) notice = r.mode === 'demo' ? 'Sample data · not a live prediction.' : r.status === 'awaiting_verifier' ? 'Awaiting independent verification.' : 'Model estimates, not observed behavior.';
   $('run-notice').hidden = !notice; $('run-notice').textContent = notice;
   $('scenarios').replaceChildren();
@@ -70,7 +74,7 @@ function render(r) {
   if (!findings.length) $('checks').append(node('p','Checks run after all scenarios have been attempted.','hint'));
   findings.forEach(c => { const row=node('div',null,'finding'); row.title=c.evidence; row.append(node('span',c.status.toUpperCase(),`badge ${c.status}`),node('span',c.check_id.replaceAll('_',' '))); $('checks').append(row); });
   $('events').replaceChildren(...r.events.map(e => {const li=node('li',e.message);li.append(node('small',`${e.sequence.toString().padStart(2,'0')} · ${e.stage}`));return li;}));
-  $('context').textContent=JSON.stringify({run_id:r.run_id,plan_hash:r.plan_hash,audience_hash:r.plan?.audience_hash,context_hash:r.plan?.context_hash,model:r.plan?.model,context:r.context,usage:r.usage},null,2);
+  $('context').textContent=JSON.stringify({run_id:r.run_id,plan_hash:r.plan_hash,audience_hash:r.plan?.audience_hash,context_hash:r.plan?.context_hash,model:r.plan?.model,context:r.context,usage:r.usage,verification_receipts:(r.p2_reviews || []).map(v=>v.decision.receipt)},null,2);
 }
 async function history() {
   const runs = await api('/experiments'); $('history').replaceChildren();
@@ -99,6 +103,11 @@ async function submit(event) {
   finally{submitting = false; $('start').disabled=!ready || ($('mode').value==='live'&&!ready.live_ready);}
 }
 $('experiment-form').addEventListener('submit',submit);
+$('retry-verifier').addEventListener('click',async()=>{
+  $('retry-verifier').disabled=true;
+  try { const r=await api(`/experiments/${current.run_id}/verify`,{}); await select(r.run_id); }
+  catch(e) { $('connection').hidden=false; $('connection').textContent=e.message; $('retry-verifier').disabled=false; }
+});
 $('cancel').addEventListener('click',async()=>{try{render(await api(`/experiments/${current.run_id}/cancel`,{}));await history();}catch(e){$('connection').textContent=e.message;}});
 function download(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('export').addEventListener('click',()=>{if(current)download(current,`silico-${current.run_id.slice(0,12)}.json`);});

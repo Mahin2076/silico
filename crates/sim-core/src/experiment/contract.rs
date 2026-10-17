@@ -131,6 +131,8 @@ pub struct Run {
     pub answers: std::collections::BTreeMap<String, Vec<GroupAnswer>>,
     pub checks: Vec<Finding>,
     pub verifier: Option<VerifierResponse>,
+    #[serde(default)]
+    pub p2_reviews: Vec<super::p2::Review>,
     pub events: Vec<Event>,
     pub usage: crate::crusoe::Usage,
     pub error: Option<String>,
