@@ -71,6 +71,8 @@ async fn base() -> (
     let dir = tempfile::tempdir().unwrap();
     let cache_path = dir.path().join("cache.db");
     let state_path = dir.path().join("state.db");
+    // Keep experiment startup recovery isolated from the developer's local runs.
+    std::env::set_var("EXPERIMENT_DB", dir.path().join("experiments.db"));
     let mut state = simfrancisco::api::build_state(
         "tiles.db",
         Some(cache_path.to_str().unwrap()),

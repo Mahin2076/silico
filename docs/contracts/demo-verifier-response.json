@@ -1,0 +1,117 @@
+{
+  "schema_version": "0.1",
+  "run_id": "adb7d05371cc3769fe35c4c654552c0284fc0c7fe859305ffcbb621678503ea6",
+  "plan_hash": "04af4d14736f38af4659a0e85eaea00f132669944ebf0ed62cff9f321ff2e72e",
+  "round": 1,
+  "verdict": "pass",
+  "checks": [
+    {
+      "check_id": "price_8:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_8:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_8:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_8:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    },
+    {
+      "check_id": "price_10:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_10:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_10:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_10:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    },
+    {
+      "check_id": "price_12:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_12:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_12:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_12:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    },
+    {
+      "check_id": "goal_alignment",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8",
+        "price_10",
+        "price_12"
+      ],
+      "evidence": "DEMO STUB: fixed lunch-price fixture matches the fixed demo goal. This does not exercise Nemotron."
+    }
+  ],
+  "repair_requests": [],
+  "summary": "Demo fixture checks passed; no live verifier was used"
+}

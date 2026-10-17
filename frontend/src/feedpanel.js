@@ -150,6 +150,8 @@ const state = {
   chart: null,          // the one open timeline chart: { id, host, dispose, close }
   items: [],            // lineage items (events, tests, data queries), newest first
   posts: new Map(),     // item id -> post element
+  standalone: false,
+  search: "",
   memoryOff: false,
   lineageOff: false,
   busy: 0,              // in-flight reacts (pauses refresh)
@@ -271,8 +273,14 @@ function setView(view) {
 function syncViews() {
   const counts = { all: state.items.length, news: 0, asks: 0, data: 0 };
   for (const i of state.items) counts[VIEW_OF[i.type]] = (counts[VIEW_OF[i.type]] || 0) + 1;
+  if (state.standalone) {
+    const newsCount = (state.getNews() || []).length;
+    counts.news += newsCount;
+    counts.all += newsCount;
+  }
   for (const b of state.el.views.querySelectorAll(".fp-view")) {
     b.setAttribute("aria-selected", b.dataset.view === state.view ? "true" : "false");
+    if (state.standalone) b.tabIndex = b.dataset.view === state.view ? 0 : -1;
     b.querySelector(".fp-view-n").textContent = counts[b.dataset.view] ? ` ${counts[b.dataset.view]}` : "";
   }
 }
@@ -283,13 +291,14 @@ function syncViews() {
 export function lineageItems() { return state.items; }
 
 export function initFeedPanel({
-  getCity, getBranch, getCityDisplay, getResidents, getNews,
+  standalone = false, getCity, getBranch, getCityDisplay, getResidents, getNews,
   setSegmentSelection, getSegmentSelectionSummary, getRawResidents, evidenceReady, dimensionLabels,
   groupLabel, drawHead, openPerson, fetchAnswers, fetchPersonal, sourceHint, getPopulationKey, openPastResult,
 } = {}) {
   const root = document.getElementById("feed-panel");
   if (!root) return;
   state.root = root;
+  state.standalone = standalone;
   if (getCity) state.getCity = getCity;
   if (getBranch) state.getBranch = getBranch;
   if (getCityDisplay) state.getCityDisplay = getCityDisplay;
@@ -309,6 +318,48 @@ export function initFeedPanel({
   if (getPopulationKey) state.getPopulationKey = getPopulationKey;
   if (openPastResult) state.openPastResult = openPastResult;
   build(root);
+
+  if (standalone) {
+    const lockup = root.querySelector(".fp-collapse");
+    const label = document.createElement("div");
+    label.className = "fp-page-city";
+    label.append(...lockup.childNodes);
+    lockup.replaceWith(label);
+    root.querySelector(".fp-collapse-caret").remove();
+    const composer = root.querySelector(".fp-composer");
+    const disclosure = document.createElement("details");
+    disclosure.className = "timeline-compose";
+    const summary = document.createElement("summary");
+    summary.textContent = "Post an update";
+    composer.before(disclosure);
+    disclosure.append(summary, composer);
+    const search = document.createElement("div");
+    search.className = "timeline-search";
+    search.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4" stroke-linecap="round"/></svg><input type="search" aria-label="Search timeline" placeholder="Search this timeline…"><button type="button" aria-label="Clear search" hidden>×</button>`;
+    state.el.views.before(search);
+    const input = search.querySelector("input"), clear = search.querySelector("button");
+    const searchChanged = () => {
+      state.search = input.value.trim().toLocaleLowerCase();
+      clear.hidden = !input.value;
+      renderThread();
+    };
+    input.addEventListener("input", searchChanged);
+    clear.addEventListener("click", () => { input.value = ""; searchChanged(); input.focus(); });
+    const count = document.createElement("span");
+    count.className = "timeline-count";
+    count.setAttribute("role", "status");
+    state.el.views.after(count);
+    state.el.views.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      const tabs = [...state.el.views.querySelectorAll(".fp-view")];
+      const current = tabs.indexOf(document.activeElement);
+      if (current < 0) return;
+      event.preventDefault();
+      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      setView(tabs[next].dataset.view);
+      tabs[next].focus();
+    });
+  }
 
   state.collapsed = false; // always expanded on load; the caret folds it for this session only
   try { const v = localStorage.getItem(VIEW_KEY); if (VIEWS.some(([k]) => k === v)) state.view = v; } catch { /* private mode */ }
@@ -395,7 +446,7 @@ export async function refreshFeedPanel({ quiet = false } = {}) {
       state.items = [];
       state.loaded = true;
       renderThread();
-      notice("Persona memory is not configured on this backend, so residents cannot remember or react.");
+      notice(state.standalone ? "News only · saved surveys and reactions aren’t connected yet." : "Persona memory is not configured on this backend, so residents cannot remember or react.");
     } else if (!quiet) {
       notice(friendly(e));
     }
@@ -438,7 +489,7 @@ function syncHeader() {
   const queries = state.items.filter((i) => i.type === "data_query").length;
   let status;
   if (state.memoryOff) status = "memory off";
-  else if (!branch) status = "waking the residents…";
+  else if (!branch) status = state.standalone ? "City activity" : "waking the residents…";
   else status = `${n.toLocaleString()} residents`;
   if (events || asks || queries) {
     const parts = [plural(events, "event"), plural(asks, "survey")];
@@ -448,6 +499,7 @@ function syncHeader() {
   el.status.textContent = status;
   el.status.classList.toggle("is-loading", /…$/.test(status) || (!state.loaded && !state.memoryOff));
   const canWrite = !!branch && !state.memoryOff;
+  if (state.standalone) state.root.querySelector(".timeline-compose").hidden = !canWrite;
   for (const f of [el.formPost]) {
     const btn = f.querySelector(".fp-primary");
     btn.disabled = !canWrite;
@@ -554,13 +606,14 @@ function renderThread() {
       else if (item.type === "data_query") fillDataQuery(post, item);
       else fillEvent(post, item);
     }
+    post.dataset.timelineDate = item.type === "event" ? (item.as_of_date || "") : (item.created_at || "");
     frag.appendChild(post);
   }
   for (const id of [...state.posts.keys()]) if (!seen.has(id)) state.posts.delete(id);
   // the city's baseline headlines: what residents already know, as plain posts
   const news = state.view === "all" || state.view === "news" ? (state.getNews() || []) : [];
-  for (const a of news.slice(0, 6)) frag.appendChild(newsPost(a));
-  const stillWaking = !state.getBranch() && !state.memoryOff;
+  for (const a of (state.standalone ? news : news.slice(0, 6))) frag.appendChild(newsPost(a));
+  const stillWaking = !state.standalone && !state.getBranch() && !state.memoryOff;
   if (!frag.childElementCount && (!state.loaded || stillWaking) && !state.memoryOff) {
     // still fetching (or seeding a fresh workspace): skeleton rows, not an empty state
     const sk = document.createElement("div");
@@ -574,13 +627,57 @@ function renderThread() {
     const empty = document.createElement("div");
     empty.className = "fp-empty";
     empty.textContent = state.memoryOff
-      ? "Nothing to remember while persona memory is off."
-      : state.view === "asks" ? "No surveys yet. Ask the city something from the box below."
+      ? (state.standalone ? "No saved activity available in this view." : "Nothing to remember while persona memory is off.")
+      : state.view === "asks" ? (state.standalone ? "No surveys yet. Ask a question on the map to get started." : "No surveys yet. Ask the city something from the box below.")
       : state.view === "data" ? "No data queries yet. Try \"show the age distribution\"."
       : "The residents remember nothing yet. Post an event and see how they take it.";
     frag.appendChild(empty);
   }
-  thread.replaceChildren(frag);
+  thread.replaceChildren(state.standalone ? groupTimeline(frag) : frag);
+}
+
+// The standalone journal groups entries by calendar date without changing the
+// underlying history used by the map or the interactive cards themselves.
+function groupTimeline(fragment) {
+  const posts = [...fragment.children].filter((node) => node.matches(".fp-post"));
+  const visible = posts.filter((post) => !state.search || post.textContent.toLocaleLowerCase().includes(state.search));
+  const count = state.root.querySelector(".timeline-count");
+  count.textContent = `${visible.length} ${visible.length === 1 ? "entry" : "entries"}${state.search ? " found" : " · newest first"}`;
+  if (!visible.length) {
+    const empty = document.createElement("div");
+    empty.className = "timeline-empty";
+    const title = document.createElement("h2"), description = document.createElement("p");
+    title.textContent = state.search ? "No matching entries" : state.view === "asks" ? "Your questions start a story" : state.view === "data" ? "Discover something about your city" : "A fresh page";
+    description.textContent = state.search ? "Try a different word, or clear your search." : state.memoryOff ? "Saved activity will appear here once the memory connection is enabled. You can still explore city news." : "Explore the map and ask a question. Your city’s activity belongs here.";
+    empty.append(title, description);
+    if (!state.search) {
+      const back = document.createElement("a");
+      back.href = document.getElementById("back-to-map").href;
+      back.textContent = "Explore the map →";
+      empty.append(back);
+    }
+    // Retain the existing loading skeleton until the initial history fetch ends.
+    return !state.loaded && !posts.length && !state.search ? fragment : empty;
+  }
+  const groups = new Map();
+  for (const post of visible) {
+    const raw = post.dataset.timelineDate || "";
+    const date = new Date(raw);
+    const key = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : Number.isNaN(date.getTime()) ? "" : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(post);
+  }
+  const result = document.createDocumentFragment();
+  for (const [date, entries] of [...groups].sort(([a], [b]) => b.localeCompare(a))) {
+    const group = document.createElement("section");
+    group.className = "timeline-day";
+    const heading = document.createElement("h2");
+    heading.className = "timeline-date";
+    heading.textContent = date ? fmtDate(date) : "Undated activity";
+    group.append(heading, ...entries);
+    result.append(group);
+  }
+  return result;
 }
 
 // fetch a few comments for the event posts near the top (best-effort)
@@ -981,6 +1078,7 @@ function fillDataQuery(post, item) {
 function newsPost(a) {
   const post = document.createElement("article");
   post.className = "fp-post fp-post-news";
+  post.dataset.timelineDate = a.date || "";
   post.innerHTML = `
     ${postHead({ avatar: "d", avatarClass: "fp-avatar-desk", source: "city desk", date: a.date ? fmtDate(a.date) : "" })}
     <div class="fp-title"></div>

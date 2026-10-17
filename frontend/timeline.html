@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Timeline · Silico</title>
+  <link rel="stylesheet" href="https://use.typekit.net/bsk0vur.css" />
+  <link rel="stylesheet" href="styles.css?v=p1-timeline-1" />
+  <link rel="stylesheet" href="feedpanel.css?v=13" />
+  <link rel="stylesheet" href="timeline.css?v=2" />
+</head>
+<body class="timeline-page">
+  <div class="timeline-ambient" aria-hidden="true"></div>
+  <main class="timeline-shell">
+    <nav class="timeline-nav" aria-label="Page navigation">
+      <a id="back-to-map" class="glass-pill" href="index.html"><span aria-hidden="true">←</span> Back to map</a>
+      <span class="timeline-brand">silico</span>
+    </nav>
+    <header class="timeline-heading">
+      <div><p class="timeline-eyebrow">THE CITY JOURNAL</p><h1>Timeline</h1></div>
+      <p>Follow what happens. See what changes.</p>
+    </header>
+    <p id="timeline-message" role="status" hidden></p>
+    <section id="feed-panel" class="feed-panel hidden" aria-label="City timeline"></section>
+  </main>
+  <script src="backend-config.js"></script>
+  <script type="module" src="src/timeline-page.js?v=2"></script>
+</body>
+</html>

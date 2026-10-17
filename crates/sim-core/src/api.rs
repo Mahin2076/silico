@@ -84,6 +84,7 @@ pub struct BranchState {
 
 pub fn router(state: AppState) -> Router {
     use tower_http::cors::{Any, CorsLayer};
+    let experiments = crate::experiment::router(state.cities.clone());
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
@@ -124,6 +125,7 @@ pub fn router(state: AppState) -> Router {
         // answered question is remembered in the city's timeline when memory is on.
         .route("/data-query", post(data_query_handler))
         .with_state(state)
+        .merge(experiments)
         .layer(cors)
 }
 
