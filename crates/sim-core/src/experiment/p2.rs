@@ -98,7 +98,7 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
                 .join(", ")
         ));
     }
-    Ok(p2::VerificationRequest {
+    let mut request = p2::VerificationRequest {
         schema_version: p2::SCHEMA_VERSION,
         run_id: run.run_id.clone(),
         plan_hash,
@@ -109,7 +109,20 @@ pub fn request(run: &p1::Run) -> Result<p2::VerificationRequest> {
         deterministic_findings,
         conclusions,
         web_research: None,
-    })
+        repair_context: None,
+    };
+    // Include the complaint that led to this round, never this round's own
+    // review. response() reconstructs this request after storing its review.
+    if let Some(previous) = run.p2_reviews.iter().rev().find(|review| {
+        review.decision.verdict == p2::Verdict::Repair
+            && u32::from(review.request.repair_round) + 1 == run.round
+    }) {
+        request.repair_context = Some(
+            p2::RepairContext::from_review(&previous.request, &previous.decision)
+                .context("Previous repair review could not be validated")?,
+        );
+    }
+    Ok(request)
 }
 
 /// Keep P1's presentation/repair format while retaining the full P2 review.
@@ -189,25 +202,37 @@ pub fn can_retry(run: &p1::Run) -> bool {
         && (run.status == "awaiting_verifier"
             || (["blocked", "needs_input"].contains(&run.status.as_str())
                 && run.p2_reviews.last().is_some_and(|r| {
-                    matches!(
-                        r.decision.receipt.error_code.as_deref(),
-                        Some(
-                            "invalid_review_evidence"
-                                | "malformed_review"
-                                | "review_identity_mismatch"
-                                | "invalid_review_coverage"
-                                | "invalid_repair_request"
-                                | "missing_targeted_repair"
-                                | "inconsistent_review_verdict"
-                                | "timeout"
-                                | "network_error"
-                                | "provider_http_error"
-                                | "rate_limited"
-                                | "authentication_failed"
-                                | "malformed_provider_response"
-                                | "model_mismatch"
-                                | "response_too_large"
-                        )
-                    )
+                    r.decision
+                        .receipt
+                        .error_code
+                        .as_deref()
+                        .is_some_and(|code| {
+                            code.starts_with("claim_")
+                                || matches!(
+                                    code,
+                                    "invalid_review_evidence"
+                                        | "malformed_review"
+                                        | "review_identity_mismatch"
+                                        | "invalid_review_coverage"
+                                        | "invalid_repair_request"
+                                        | "missing_targeted_repair"
+                                        | "inconsistent_review_verdict"
+                                        | "unexpected_repair_assessment"
+                                        | "incomplete_repair_assessments"
+                                        | "unknown_repair_assessment"
+                                        | "invalid_repair_assessment"
+                                        | "invalid_repair_evidence"
+                                        | "repair_change_not_cited"
+                                        | "inconsistent_repair_resolution"
+                                        | "timeout"
+                                        | "network_error"
+                                        | "provider_http_error"
+                                        | "rate_limited"
+                                        | "authentication_failed"
+                                        | "malformed_provider_response"
+                                        | "model_mismatch"
+                                        | "response_too_large"
+                                )
+                        })
                 })))
 }

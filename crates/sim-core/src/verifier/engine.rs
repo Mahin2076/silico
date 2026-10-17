@@ -187,6 +187,7 @@ impl<T: VerifierTransport> Verifier<T> {
             "request_hash": decision.request_hash,
             "repair_round": request.repair_round,
             "evidence_pointers": evidence_pointers,
+            "claim_evidence": super::claims::evidence_catalog(request),
             "required_checks": required.iter().map(|(id, description)| json!({"id":id,"description":description})).collect::<Vec<_>>(),
             "request": request,
         }).to_string();
@@ -220,13 +221,15 @@ impl<T: VerifierTransport> Verifier<T> {
             Ok(value) => value,
             Err(_) => return unavailable(request, decision, started, "malformed_review"),
         };
-        if let Err(code) = validate_review(request, &input, &review) {
+        if let Err(code) = validate_review(request, &input, &review, &decision.findings) {
             return unavailable(request, decision, started, code);
         }
         decision.verdict = review.verdict;
         decision.summary = review.summary;
         decision.findings.extend(review.findings);
         decision.repair_requests = review.repair_requests;
+        decision.claim_assessments = review.claim_assessments;
+        decision.repair_assessments = review.repair_assessments;
         enforce_round_budget(request, &mut decision);
         finish(decision, started)
     }
@@ -246,6 +249,8 @@ fn empty_decision(
         summary: String::new(),
         findings: vec![],
         repair_requests: vec![],
+        claim_assessments: vec![],
+        repair_assessments: vec![],
         receipt: VerificationReceipt {
             mode: "local".into(),
             provider: identity.provider.clone(),
@@ -343,6 +348,9 @@ fn invalid_input(request: &VerificationRequest, input: &Value) -> Option<&'stati
     }
     if request.repair_round > MAX_REPAIR_ROUND {
         return Some("Repair round exceeds the two-round limit.");
+    }
+    if super::repairs::validate_context(request).is_err() {
+        return Some("Repair history does not match this run, frozen plan, or next repair round.");
     }
     if !hash_valid(&request.plan_hash) || request.plan_hash != plan_hash(&request.goal, plan) {
         return Some("Plan hash does not match the immutable goal and plan.");
@@ -632,6 +640,13 @@ fn local_checks(
             else { "Required web research is unavailable, empty, invalid, or outside the evidence cutoff; Nemotron was not called." },
             vec![evidence("/web_research")]));
     }
+    if request.repair_context.is_some() {
+        let unchanged = super::repairs::unresolved(request);
+        findings.push(finding("p2.repair_progress", if unchanged { CheckStatus::Blocked } else { CheckStatus::Pass },
+            if unchanged { "The evidence relevant to the original repair is unchanged; a new attempt number or rewritten explanation does not resolve it." }
+            else { "Substantive evidence changed; the original repair still requires an explicit resolution review." },
+            vec![evidence("/results"), evidence("/conclusions")]));
+    }
     findings
 }
 
@@ -711,6 +726,9 @@ fn semantic_checks(request: &VerificationRequest) -> Vec<(String, String)> {
     if request.web_research.is_some() {
         checks.push(("p2.web_grounding".into(), "Check that the retrieved sources are relevant to this experiment's assumptions or external claims and that conclusions represent their evidence faithfully. Cite at least one individual /web_research/sources/N source. Web snippets cannot validate synthetic support percentages or prove real-world causality. Undated snippets are methodological background only; do not use them as evidence of a historical fact or state as of a past date.".into()));
     }
+    if request.repair_context.is_some() {
+        checks.push(("p2.repair_resolution".into(), "Verify each original repair complaint against the new evidence. A changed answer alone does not establish that the original failure was resolved; provide one repair_assessment for each repair obligation, citing concrete evidence and explaining the resolution.".into()));
+    }
     checks
 }
 
@@ -750,12 +768,26 @@ fn finish_unreviewed(request: &VerificationRequest, decision: &mut VerificationD
             vec![],
         ));
     }
+    if request.repair_context.is_some()
+        && !decision
+            .findings
+            .iter()
+            .any(|f| f.check_id == "p2.repair_progress")
+    {
+        decision.findings.push(finding(
+            "p2.repair_progress",
+            CheckStatus::NotReviewed,
+            "Not reviewed because prerequisite integrity checks failed.",
+            vec![],
+        ));
+    }
 }
 
 fn validate_review(
     request: &VerificationRequest,
     input: &Value,
     review: &ModelReview,
+    local_findings: &[Finding],
 ) -> Result<(), &'static str> {
     if review.schema_version != SCHEMA_VERSION
         || review.run_id != request.run_id
@@ -873,5 +905,15 @@ fn validate_review(
     {
         return Err("missing_targeted_repair");
     }
+    let support = review
+        .findings
+        .iter()
+        .find(|f| f.check_id == "p2.conclusion_support")
+        .map(|f| f.status)
+        .ok_or("invalid_review_coverage")?;
+    super::claims::validate_claims(request, &review.claim_assessments, support)?;
+    let mut combined = local_findings.to_vec();
+    combined.extend(review.findings.clone());
+    super::repairs::validate_resolution(request, &review.repair_assessments, &combined)?;
     Ok(())
 }

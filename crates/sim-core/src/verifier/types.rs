@@ -3,7 +3,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 pub const SCHEMA_VERSION: u32 = 1;
-pub const PROMPT_VERSION: &str = "silico-p2-verifier-v3-native";
+pub const PROMPT_VERSION: &str = "silico-p2-verifier-v4-evidence";
 pub const MAX_REPAIR_ROUND: u8 = 2;
 pub const LOCAL_CHECKS: &[&str] = &[
     "p2.input_integrity",
@@ -120,6 +120,8 @@ pub struct VerificationRequest {
     /// Additive evidence attachment. Omitted for existing P1 schema-v1 requests.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub web_research: Option<super::WebResearch>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repair_context: Option<super::RepairContext>,
 }
 
 /// Object keys are sorted recursively. Array ordering is deliberately significant.
@@ -211,6 +213,9 @@ pub struct ModelReview {
     pub summary: String,
     pub findings: Vec<Finding>,
     pub repair_requests: Vec<RepairRequest>,
+    pub claim_assessments: Vec<super::ClaimAssessment>,
+    #[serde(default)]
+    pub repair_assessments: Vec<super::RepairAssessment>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -238,6 +243,11 @@ pub struct VerificationDecision {
     pub findings: Vec<Finding>,
     pub repair_requests: Vec<RepairRequest>,
     pub receipt: VerificationReceipt,
+    /// Older receipts remain readable but cannot pass the stronger current gate.
+    #[serde(default)]
+    pub claim_assessments: Vec<super::ClaimAssessment>,
+    #[serde(default)]
+    pub repair_assessments: Vec<super::RepairAssessment>,
 }
 
 impl VerificationDecision {
@@ -254,6 +264,17 @@ impl VerificationDecision {
             && self.receipt.mode == "live"
             && self.receipt.model_calls == 1
             && self.receipt.error_code.is_none()
+            && super::claims::validate_claims(request, &self.claim_assessments, CheckStatus::Pass)
+                .is_ok()
+            && super::repairs::validate_context(request).is_ok()
+            && !super::repairs::unresolved(request)
+            && self.repair_context_checks_present(request)
+            && super::repairs::validate_resolution(
+                request,
+                &self.repair_assessments,
+                &self.findings,
+            )
+            .is_ok()
             && request.web_research.as_ref().map_or(true, |web| {
                 web.mode == "live"
                     && web.is_ready(&request.plan.context.as_of_date)
@@ -274,5 +295,12 @@ impl VerificationDecision {
                 .iter()
                 .filter(|c| c.required)
                 .all(|c| self.findings.iter().filter(|f| f.check_id == c.id).count() == 1)
+    }
+
+    fn repair_context_checks_present(&self, request: &VerificationRequest) -> bool {
+        request.repair_context.is_none()
+            || ["p2.repair_progress", "p2.repair_resolution"]
+                .iter()
+                .all(|id| self.findings.iter().filter(|f| f.check_id == *id).count() == 1)
     }
 }

@@ -195,7 +195,7 @@ impl VerifierTransport for ResearchReviewer {
                 "check_id":c["id"],"status":"pass","summary":"Supplied fixture evidence supports this review.",
                 "evidence":[{"pointer":if c["id"]=="p2.web_grounding" {"/web_research/sources/0"}else{"/results/0/payload"}}]
             })).collect::<Vec<_>>();
-            Ok(Completion{model:DEFAULT_MODEL.into(),text:json!({"schema_version":SCHEMA_VERSION,"run_id":envelope["run_id"],"plan_hash":envelope["plan_hash"],"request_hash":envelope["request_hash"],"repair_round":envelope["repair_round"],"verdict":"pass","summary":"Mock research review.","findings":findings,"repair_requests":[]}).to_string()})
+            Ok(Completion{model:DEFAULT_MODEL.into(),text:json!({"schema_version":SCHEMA_VERSION,"run_id":envelope["run_id"],"plan_hash":envelope["plan_hash"],"request_hash":envelope["request_hash"],"repair_round":envelope["repair_round"],"verdict":"pass","summary":"Mock research review.","claim_assessments":serde_json::from_str::<Value>(include_str!("fixtures/fixture-review.json")).unwrap()["claim_assessments"],"repair_assessments":[],"findings":findings,"repair_requests":[]}).to_string()})
         })
     }
 }

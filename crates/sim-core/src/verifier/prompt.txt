@@ -21,7 +21,15 @@ For EACH entry in required_checks, return exactly one finding. Assess:
 - p2.conclusion_support: are conclusions supported by completed result payloads,
   with appropriate uncertainty and synthetic-data limits? No causal or real-world
   predictive-validity claims without evidence. Inspect direction and magnitude,
-  not merely whether a conclusion mentions a result.
+  not merely whether a conclusion mentions a result. For each conclusion, identify
+  its strongest material assertion, cite the exact supporting values, and explain
+  the inferential link. A topically related snippet is not support for a claim.
+  Check EVERY assertion in a conclusion; one supported clause cannot excuse an
+  unsupported percentage, causal statement, or generalization in another clause.
+  A synthetic-fixture label NEVER excuses incorrect reported numbers. If a
+  conclusion says 85% but the source is 0.65, reject it even when its limitations
+  are stated correctly. Verify spelled-out percentages and percentage-point
+  differences too; a correct comparison proof cannot excuse false prose.
 - Other required checks: apply the exact supplied description without weakening it.
 - p2.web_grounding, when requested: assess relevance and faithful use of retrieved
   sources for assumptions/external claims. Cite at least one individual source at
@@ -52,6 +60,44 @@ Every finding MUST use the property "check_id", never "id". Copy its value from
 required_checks[].id. Example finding shape:
 {"check_id":"p2.goal_alignment","status":"pass","summary":"Your evidence-based assessment","evidence":[{"pointer":"/plan/scenarios"}]}.
 This is a format example, not an instruction to pass the check.
+Another REQUIRED top-level field is claim_assessments. Return exactly ONE entry
+for EACH request.conclusions index (zero-based), including rejected conclusions:
+[{conclusion_index,kind:modeled_result|comparison|limitation|external_fact,
+status:pass|repair|blocked,evidence:[{pointer,observed}],reasoning,
+comparison:null|{left_pointer,right_pointer,relation:greater|less|equal,difference}}].
+Use kind comparison when a conclusion compares modeled quantities, even if it also
+states limitations. observed MUST be the exact primitive value from that pointer,
+not a rounded number, paraphrase, converted percentage, or invented quotation.
+Claim citations are stricter than finding citations: ONLY numeric/text leaves under
+/results/<index>/payload, /plan/assumptions/<index>, or actual individual web snippets
+/web_research/sources/<index>/snippets/<index> are allowed. NEVER cite broad objects,
+titles, URLs, conclusions, booleans, metadata, status, pass flags, or validity flags.
+The envelope supplies claim_evidence: exact existing {pointer,observed} candidates.
+Copy the appropriate catalog entries exactly; do not infer or rename payload keys.
+For example, weighted_yes_share and fixture_weighted_yes_share are different keys;
+only the one actually present can be cited. A finding or repair assessment uses
+evidence:[{pointer}] ONLY. A claim assessment uses evidence:[{pointer,observed}].
+Do not mix these shapes: extra observed fields in finding/repair evidence make
+the response invalid, and missing observed fields in claim evidence are invalid.
+Modeled results need numeric payload evidence; external facts need an actual
+supporting snippet; limitations need a stated plan assumption. For a passing
+comparison cite BOTH numeric result leaves and provide their pointers in comparison;
+relation compares left to right, difference is raw left minus right. For example,
+0.65 minus 0.60 is 0.05, NOT 5. Do not invent a comparison proof for non-comparisons.
+For a reverse comparison with left=0.60 and right=0.65, use relation:"less"
+and difference:-0.05. The prose may say a positive five-percentage-point gap;
+the proof's difference is still SIGNED left minus right. Either operand order is
+allowed if its relation and signed difference agree. Recalculate before returning.
+For finding evidence, use the supplied evidence_pointers exactly. If an external
+claim has no source, cite /conclusions/0 (its actual index) to identify the unsupported
+claim; do not invent /web_research or a source pointer that is absent.
+If a comparison or any other assertion is unsupported, return repair/blocked and
+explain precisely why. Do not manufacture support. Rejected claims may have empty
+evidence and comparison:null. All citations you do provide are checked even on a
+rejection. Keep each reasoning concise and specific (at most 2400 bytes); at most
+12 evidence entries per conclusion. p2.conclusion_support must be blocked if any
+claim is blocked, otherwise repair if any claim is repair, otherwise pass.
+
 The remaining required top-level field is
 repair_requests [{id,action:rerun_scenario|revise_plan|request_clarification,
 check_ids:[...],scenario_ids:[...],reason}].
@@ -63,3 +109,18 @@ If verdict is pass, all findings must pass and repair_requests must be empty.
 If any finding is blocked, verdict must be blocked; otherwise any repair finding
 means verdict repair. A pass requires evidence for every finding. Do not emit fields
 not in the schema. Avoid verbose prose; the caller has a bounded output budget.
+
+When repair_context is present, assess the ORIGINAL complaint in each obligation,
+not merely whether a rerun finished or changed its wording. Return repair_assessments
+[{repair_id,status:pass|repair|blocked,reasoning,evidence:[{pointer}]}], exactly one
+per original repair_id. Explain which new evidence resolves the original failure.
+A rerun needs substantive changed result evidence; attempt numbers, timestamps,
+rewritten explanations, and paraphrased conclusions do not count. Compare against
+the supplied baseline obligation. If the old problem persists, mark repair or
+blocked and target the original check again. Assess the required
+p2.repair_resolution finding consistently with these individual assessments.
+When no repair_context exists, repair_assessments is an empty array.
+Do not request changed probabilities merely to make a rerun look different. Each
+repair must identify a concrete failed requirement and what evidence would resolve
+it. If a sound rerun reproduces unchanged evidence, acknowledge the unresolved
+verification complaint rather than inventing progress or forcing another answer.

@@ -18,6 +18,8 @@ fn passing_review(envelope: &Value) -> Value {
         "run_id": envelope["run_id"], "plan_hash": envelope["plan_hash"],
         "request_hash": envelope["request_hash"], "repair_round": envelope["repair_round"],
         "verdict": "pass", "summary": "Fixture review, not live evidence.",
+        "claim_assessments": serde_json::from_str::<Value>(include_str!("fixtures/fixture-review.json")).unwrap()["claim_assessments"],
+        "repair_assessments": [],
         "findings": envelope["required_checks"].as_array().unwrap().iter().map(|c| json!({
             "check_id": c["id"], "status":"pass", "summary":"Supported by the supplied software fixture.",
             "evidence":[{"pointer":"/results/0/payload"}]
