@@ -1,0 +1,222 @@
+    Checking bitflags v2.13.0
+    Checking getrandom v0.4.2
+    Checking fastrand v2.4.1
+    Checking tower-http v0.6.11
+    Checking rustix v1.1.4
+    Checking reqwest v0.12.28
+    Checking rusqlite v0.31.0
+    Checking tower-http v0.5.2
+    Checking tempfile v3.27.0
+    Checking simfrancisco v0.1.0 (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/outputs/silico/crates/sim-core)
+error: the loop variable `k` is used to index `num`
+  --> crates/sim-core/src/aggregate.rs:40:18
+   |
+40 |         for k in 0..n_options {
+   |                  ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_range_loop
+   = note: `-D clippy::needless-range-loop` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
+help: consider using an iterator and enumerate()
+   |
+40 -         for k in 0..n_options {
+40 +         for (k, <item>) in num.iter_mut().enumerate().take(n_options) {
+   |
+
+error: enclosing `Ok` and `?` operator are unneeded
+   --> crates/sim-core/src/data_source.rs:147:41
+    |
+147 |             |i: usize| -> Result<u16> { Ok(cells[i].parse().context("invalid PUMS integer")?) };
+    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_question_mark
+    = note: `-D clippy::needless-question-mark` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_question_mark)]`
+help: remove the enclosing `Ok` and `?` operator
+    |
+147 -             |i: usize| -> Result<u16> { Ok(cells[i].parse().context("invalid PUMS integer")?) };
+147 +             |i: usize| -> Result<u16> { cells[i].parse().context("invalid PUMS integer") };
+    |
+
+error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
+   --> crates/sim-core/src/geo.rs:166:12
+    |
+166 |         if v >= 255 {
+    |            ^^^^^^^^
+    |
+    = help: because `255` is the maximum value for this type, the case where the two sides are not equal never occurs, consider using `v == 255` instead
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#absurd_extreme_comparisons
+    = note: `#[deny(clippy::absurd_extreme_comparisons)]` on by default
+
+error: large size difference between variants
+   --> crates/sim-core/src/memory.rs:208:1
+    |
+208 | /   pub enum LineageItem {
+209 | | /     Event {
+210 | | |         id: String,
+211 | | |         kind: String,
+212 | | |         text: String,
+...   | |
+216 | | |         sentiment: BTreeMap<String, usize>,
+217 | | |     },
+    | | |_____- the second-largest variant contains at least 152 bytes
+218 | | /     Test {
+219 | | |         id: String,
+220 | | |         kind: String,
+221 | | |         question: String,
+...   | |
+243 | | |         breakdowns: Option<Value>,
+244 | | |     },
+    | | |_____- the largest variant contains at least 456 bytes
+...   |
+255 | |       },
+256 | |   }
+    | |___^ the entire enum is at least 456 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+234 ~         created_at: Box<String>,
+235 |         /// City events the residents could remember when this test was asked.
+236 |         events_known: usize,
+237 ~         under_event: Box<Option<String>>,
+238 ~         stimuli: Box<Vec<StimulusRecord>>,
+239 |         previous_p_yes: Option<f64>,
+...
+242 |         /// or null for tests recorded before breakdowns were kept.
+243 ~         breakdowns: Box<Option<Value>>,
+    |
+
+error: this function has too many arguments (9/7)
+   --> crates/sim-core/src/persona.rs:348:1
+    |
+348 | / fn build_persona_prose(
+349 | |     rec: &PumsRecord,
+350 | |     name: &str,
+351 | |     occupation: &str,
+...   |
+357 | |     profile: &CityProfile,
+358 | | ) -> String {
+    | |___________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: iterating on a map's values
+   --> crates/sim-core/src/predict.rs:206:46
+    |
+206 |               let mut clusters: Vec<Cluster> = map
+    |  ______________________________________________^
+207 | |                 .into_iter()
+208 | |                 .map(|(_key, member_idx)| Cluster {
+209 | |                     rep_idx: member_idx[0],
+210 | |                     member_idx,
+211 | |                 })
+    | |__________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#iter_kv_map
+    = note: `-D clippy::iter-kv-map` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::iter_kv_map)]`
+help: try
+    |
+206 ~             let mut clusters: Vec<Cluster> = map.into_values().map(|member_idx| Cluster {
+207 +                     rep_idx: member_idx[0],
+208 +                     member_idx,
+209 +                 })
+    |
+
+error: this function has too many arguments (9/7)
+   --> crates/sim-core/src/predict.rs:401:5
+    |
+401 | /     pub async fn run_ab_test(
+402 | |         &self,
+403 | |         pop: &Population,
+404 | |         question: &str,
+...   |
+410 | |         tag: &TestTag,
+411 | |     ) -> Result<PollResult> {
+    | |___________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#too_many_arguments
+
+error: this OR pattern can be rewritten using a range
+  --> crates/sim-core/src/pums.rs:95:13
+   |
+95 |             3 | 4 | 5 => "native",
+   |             ^^^^^^^^^ help: try: `3..=5`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#manual_range_patterns
+   = note: `-D clippy::manual-range-patterns` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_range_patterns)]`
+
+error: you seem to want to iterate on a map's values
+   --> crates/sim-core/src/sim.rs:210:27
+    |
+210 |         for (_, group) in by_cell.iter() {
+    |                           ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#for_kv_map
+    = note: `-D clippy::for-kv-map` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::for_kv_map)]`
+help: use the corresponding method
+    |
+210 -         for (_, group) in by_cell.iter() {
+210 +         for group in by_cell.values() {
+    |
+
+error: this `match` expression can be replaced with `?`
+    --> crates/sim-core/src/api.rs:1566:18
+     |
+1566 |       let sim_id = match bid.rfind(':') {
+     |  __________________^
+1567 | |         Some(i) => bid[..i].to_string(),
+1568 | |         None => return None,
+1569 | |     };
+     | |_____^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#question_mark
+     = note: `-D clippy::question-mark` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::question_mark)]`
+help: try instead
+     |
+1566 ~     let sim_id = {
+1567 +         let i = bid.rfind(':')?;
+1568 +         bid[..i].to_string()
+1569 ~     };
+     |
+
+error: you seem to want to iterate on a map's values
+    --> crates/sim-core/src/api.rs:1715:22
+     |
+1715 |     for (_, dist) in m.iter_mut() {
+     |                      ^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#for_kv_map
+help: use the corresponding method
+     |
+1715 -     for (_, dist) in m.iter_mut() {
+1715 +     for dist in m.values_mut() {
+     |
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+    --> crates/sim-core/src/api.rs:2093:57
+     |
+2093 |     let pop_key = crate::memory::population_key_in(&ws, &pop);
+     |                                                         ^^^^ help: change this to: `pop`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+     = note: `-D clippy::needless-borrow` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+    --> crates/sim-core/src/api.rs:2094:48
+     |
+2094 |     if let Err(e) = mem.ensure_population(&ws, &pop).await {
+     |                                                ^^^^ help: change this to: `pop`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: could not compile `simfrancisco` (lib) due to 13 previous errors

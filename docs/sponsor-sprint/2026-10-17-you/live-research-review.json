@@ -1,0 +1,421 @@
+{
+  "decision": {
+    "findings": [
+      {
+        "check_id": "p2.input_integrity",
+        "evidence": [
+          {
+            "pointer": "/plan"
+          },
+          {
+            "pointer": "/goal"
+          }
+        ],
+        "status": "pass",
+        "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid."
+      },
+      {
+        "check_id": "p2.scenario_coverage",
+        "evidence": [
+          {
+            "pointer": "/plan/scenarios"
+          },
+          {
+            "pointer": "/results"
+          }
+        ],
+        "status": "pass",
+        "summary": "Every planned scenario has exactly one complete result."
+      },
+      {
+        "check_id": "p2.context_consistency",
+        "evidence": [
+          {
+            "pointer": "/plan/context"
+          },
+          {
+            "pointer": "/results"
+          }
+        ],
+        "status": "pass",
+        "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash."
+      },
+      {
+        "check_id": "p2.audience_consistency",
+        "evidence": [
+          {
+            "pointer": "/plan/scenarios"
+          },
+          {
+            "pointer": "/results"
+          }
+        ],
+        "status": "pass",
+        "summary": "Result audience IDs match their corresponding scenarios."
+      },
+      {
+        "check_id": "coverage.complete",
+        "evidence": [
+          {
+            "pointer": "/results"
+          }
+        ],
+        "status": "pass",
+        "summary": "Labeled fixture: both scenarios contain all two expected archetype answers."
+      },
+      {
+        "check_id": "weights.valid",
+        "evidence": [
+          {
+            "pointer": "/results"
+          }
+        ],
+        "status": "pass",
+        "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer."
+      },
+      {
+        "check_id": "p2.deterministic_checks",
+        "evidence": [
+          {
+            "pointer": "/plan/completion_checks"
+          },
+          {
+            "pointer": "/deterministic_findings"
+          }
+        ],
+        "status": "pass",
+        "summary": "Required deterministic findings are present, evidenced, and passing."
+      },
+      {
+        "check_id": "p2.evidence_completeness",
+        "evidence": [
+          {
+            "pointer": "/results"
+          },
+          {
+            "pointer": "/conclusions"
+          }
+        ],
+        "status": "pass",
+        "summary": "Completed results contain payloads and conclusions are available for review."
+      },
+      {
+        "check_id": "p2.web_sources",
+        "evidence": [
+          {
+            "pointer": "/web_research"
+          }
+        ],
+        "status": "pass",
+        "summary": "You.com sources have bounded, dated provenance and match the frozen evidence cutoff. Undated pages are background only."
+      },
+      {
+        "check_id": "p2.goal_alignment",
+        "evidence": [
+          {
+            "pointer": "/plan/scenarios/0"
+          },
+          {
+            "pointer": "/plan/scenarios/1"
+          }
+        ],
+        "status": "pass",
+        "summary": "Scenarios message-a and message-b both target the same frozen adult audience (sf-adults-fixture) with binary yes/no framing on whether each message increases support for a transit proposal, directly addressing the goal to compare synthetic responses and state which has higher modeled support."
+      },
+      {
+        "check_id": "p2.explicit_assumptions",
+        "evidence": [
+          {
+            "pointer": "/plan/assumptions/0"
+          },
+          {
+            "pointer": "/plan/assumptions/1"
+          }
+        ],
+        "status": "pass",
+        "summary": "The plan explicitly states two key assumptions: (1) the fixture tests software behavior only and is not an observed survey or evidence of predictive validity, and (2) messages are shown to the same frozen synthetic adult audience with equal archetype weighting. These are specific, consequential, and consistent with the scenario designs and results."
+      },
+      {
+        "check_id": "p2.conclusion_support",
+        "evidence": [
+          {
+            "pointer": "/results/0/payload/weighted_yes_share"
+          },
+          {
+            "pointer": "/results/1/payload/weighted_yes_share"
+          },
+          {
+            "pointer": "/conclusions/0"
+          }
+        ],
+        "status": "pass",
+        "summary": "The conclusion correctly reports B at 65% vs A at 60% (a 5-point difference) from the weighted_yes_share in results (0.6 and 0.65), explicitly states it does not measure real residents, demonstrate causal effects, or establish predictive accuracy, and notes real-world decisions require validation with people—matching the result payloads and preserving synthetic-data limits."
+      },
+      {
+        "check_id": "decision.caveat",
+        "evidence": [
+          {
+            "pointer": "/conclusions/0"
+          }
+        ],
+        "status": "pass",
+        "summary": "The conclusion explicitly frames the outcome as a 'labeled synthetic software fixture' and denies real-world public support, causal impact, or predictive accuracy, satisfying the required semantic check."
+      },
+      {
+        "check_id": "p2.web_grounding",
+        "evidence": [
+          {
+            "pointer": "/web_research/sources/4"
+          },
+          {
+            "pointer": "/plan/assumptions/0"
+          },
+          {
+            "pointer": "/conclusions/0"
+          }
+        ],
+        "status": "pass",
+        "summary": "The retrieved sources discuss APOP's ethical standards for disclosure, AI in survey research, and the necessity of identifying synthetic data as non-human participants. Source 5 (Best Practices for Using Generative AI for Survey Research) is directly relevant to the experiment's assumption that the fixture is for software testing only and not a real survey, and supports the conclusion's limitation disclosure. The conclusion faithfully represents this by stating the synthetic nature and lack of real-world validity."
+      }
+    ],
+    "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+    "receipt": {
+      "elapsed_ms": 13288,
+      "error_code": null,
+      "mode": "live",
+      "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+      "model_calls": 1,
+      "prompt_version": "silico-p2-verifier-v2-web",
+      "provider": "crusoe-managed-inference"
+    },
+    "repair_requests": [],
+    "repair_round": 0,
+    "request_hash": "47f1906ecaa653455c1dcb276416c755e24e02f92cc78739409de4eadea99299",
+    "run_id": "p2-fixture-complete",
+    "schema_version": 1,
+    "summary": "All required checks pass: goal alignment is satisfied as scenarios compare message A and B for the same frozen adult audience; assumptions are explicit and consistent; conclusions are supported by results and properly caveated; decision.caveat is met by the conclusion's language; and p2.web_grounding is satisfied by citing /web_research/sources/4 which discusses AI in survey research and disclosure, relevant to the experiment's assumptions about synthetic data limitations.",
+    "verdict": "pass"
+  },
+  "request": {
+    "conclusions": [
+      "In this labeled synthetic software fixture, B has 65% modeled support versus A at 60%, a five percentage point difference. This does not measure real residents, demonstrate causal effects, or establish predictive accuracy; real-world decisions require validation with people."
+    ],
+    "deterministic_findings": [
+      {
+        "check_id": "coverage.complete",
+        "detail": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+        "evidence": [
+          {
+            "pointer": "/results"
+          }
+        ],
+        "passed": true,
+        "scenario_ids": [
+          "message-a",
+          "message-b"
+        ]
+      },
+      {
+        "check_id": "weights.valid",
+        "detail": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+        "evidence": [
+          {
+            "pointer": "/results"
+          }
+        ],
+        "passed": true,
+        "scenario_ids": [
+          "message-a",
+          "message-b"
+        ]
+      }
+    ],
+    "goal": "Compare synthetic responses to message A and message B for the same frozen adult audience; state which message has the higher modeled support and preserve synthetic-data limitations.",
+    "plan": {
+      "assumptions": [
+        "This labeled synthetic fixture tests software behavior only; it is not an observed survey or evidence of predictive validity.",
+        "Messages are shown to the same frozen synthetic adult audience; every archetype has equal weight in this fixture."
+      ],
+      "completion_checks": [
+        {
+          "description": "All planned archetype answers are present in every completed scenario.",
+          "id": "coverage.complete",
+          "kind": "deterministic",
+          "required": true
+        },
+        {
+          "description": "Probability vectors and weighted aggregation pass P1 deterministic validation.",
+          "id": "weights.valid",
+          "kind": "deterministic",
+          "required": true
+        },
+        {
+          "description": "The conclusion reports the A/B comparison as a labeled software fixture and does not claim real-world public support or causal impact.",
+          "id": "decision.caveat",
+          "kind": "semantic",
+          "required": true
+        }
+      ],
+      "context": {
+        "as_of_date": "2026-10-17",
+        "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+        "model": "fixture-only-no-live-simulation",
+        "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+        "seed": 42
+      },
+      "scenarios": [
+        {
+          "audience_id": "sf-adults-fixture",
+          "description": "Show message A: Save on everyday transit.",
+          "id": "message-a",
+          "inputs": {
+            "audience_filter": {
+              "group": "same frozen adult fixture audience"
+            },
+            "framing": "binary",
+            "options": [
+              "yes",
+              "no"
+            ],
+            "question": "Would this message make you more likely to support the transit proposal?",
+            "stimulus": "Save on everyday transit."
+          }
+        },
+        {
+          "audience_id": "sf-adults-fixture",
+          "description": "Show message B: More reliable transit.",
+          "id": "message-b",
+          "inputs": {
+            "audience_filter": {
+              "group": "same frozen adult fixture audience"
+            },
+            "framing": "binary",
+            "options": [
+              "yes",
+              "no"
+            ],
+            "question": "Would this message make you more likely to support the transit proposal?",
+            "stimulus": "More reliable transit."
+          }
+        }
+      ]
+    },
+    "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+    "repair_round": 0,
+    "results": [
+      {
+        "audience_id": "sf-adults-fixture",
+        "context": {
+          "as_of_date": "2026-10-17",
+          "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+          "model": "fixture-only-no-live-simulation",
+          "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+          "seed": 42
+        },
+        "id": "result-message-a",
+        "payload": {
+          "aggregation_checked_by_p1": true,
+          "fixture": true,
+          "n_archetypes_answered": 2,
+          "n_archetypes_expected": 2,
+          "probability_vectors_valid": true,
+          "weighted_yes_share": 0.6
+        },
+        "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+        "scenario_id": "message-a",
+        "status": "complete"
+      },
+      {
+        "audience_id": "sf-adults-fixture",
+        "context": {
+          "as_of_date": "2026-10-17",
+          "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+          "model": "fixture-only-no-live-simulation",
+          "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+          "seed": 42
+        },
+        "id": "result-message-b",
+        "payload": {
+          "aggregation_checked_by_p1": true,
+          "fixture": true,
+          "n_archetypes_answered": 2,
+          "n_archetypes_expected": 2,
+          "probability_vectors_valid": true,
+          "weighted_yes_share": 0.65
+        },
+        "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+        "scenario_id": "message-b",
+        "status": "complete"
+      }
+    ],
+    "run_id": "p2-fixture-complete",
+    "schema_version": 1,
+    "web_research": {
+      "as_of_date": "2026-10-17",
+      "error_code": null,
+      "fetched_at": "2026-10-17T18:14:27.261706+00:00",
+      "mode": "live",
+      "provider": "you.com",
+      "query": {
+        "include_domains": [
+          "aapor.org"
+        ],
+        "query": "AI synthetic survey respondents limitations validation disclosure"
+      },
+      "search_calls": 1,
+      "sources": [
+        {
+          "id": "web-1",
+          "publication_date": "2022-11-08",
+          "snippets": [
+            "Section III. of the AAPOR Code of Professional Ethics & Practice (April 2021) specifies: III. Standards for Disclosure Broadly defined, research on public opinion can be conducted using a variety of quantitative and qualitative methodologies, depending on the research questions to be addressed and available resources.",
+            "Describe validity checks, where applicable, including but not limited to whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent’s identity or both, and measures to prevent respondents from completing the survey more than once."
+          ],
+          "title": "Disclosure Standards - AAPOR",
+          "url": "https://aapor.org/standards-and-ethics/disclosure-standards/"
+        },
+        {
+          "id": "web-2",
+          "publication_date": "2022-11-03",
+          "snippets": [
+            "What is the Transparency Initiative What is the Transparency Initiative? AAPOR’s Transparency Initiative is designed to promote methodological disclosure through a proactive, educational approach that assists survey organizations in developing simple and efficient means for routinely disclosing the research methods associated with their publicly-released studies.",
+            "Describe validity checks, where applicable, including—but not limited to—whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent’s identity or both, and measures to prevent respondents from completing the survey more than once."
+          ],
+          "title": "AAPOR's Transparency Initiative is ...",
+          "url": "https://aapor.org/standards-and-ethics/transparency-initiative/"
+        },
+        {
+          "id": "web-3",
+          "publication_date": "2026-06-04",
+          "snippets": [
+            "Overview AAPOR believes in upholding the highest standards for our profession, with our members agreeing to abide by the AAPOR Code of Professional Ethics and Practices. Our goals are to support sound and ethical practice in the conduct of survey and public opinion research and in the use of such research for policy- and decision-making in the",
+            "Describe validity checks, where applicable, including but not limited to whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent’s identity or both, and measures to prevent respondents from completing the survey more than once."
+          ],
+          "title": "Standards and Ethics - AAPOR",
+          "url": "https://aapor.org/standards-and-ethics/"
+        },
+        {
+          "id": "web-4",
+          "publication_date": "2026-03-25",
+          "snippets": [
+            "Every five years, AAPOR reviews and proposes amendments to its Code of Professional Ethics and Practices. This continual review ensures the Code not only adequately supports sound and ethical practice in the conduct of public opinion and survey research, but also promotes the informed and appropriate use of research results.",
+            "The revisions make clear that terms such as participants, poll, survey, and surveying are used to describe data collected from human participants; AI‑generated or synthetic data are not research participants and must be clearly identified as such. Explicitly addressing AI in ethical responsibilities. Existing ethical obligations (e.g., privacy protection, legal compliance) are extended to research that uses AI, including recognition that AI may increase re‑identification risks. Strengthening disclosure requirements overall."
+          ],
+          "title": "Call for Comments: AAPOR Code of Professional Ethics and Practices ...",
+          "url": "https://aapor.org/announcements/call-for-comments-code-of-ethics/"
+        },
+        {
+          "id": "web-5",
+          "publication_date": "2024-11-25",
+          "snippets": [
+            "Best Practices for Using Generative AI for Survey Research Sarah Kelley and Claire Kelley, Child Trends Generative AI – which can be broadly defined as computer technology that creates content such as text, images or video – surged into public consciousness with the release of ChatGPT in late 2022.",
+            "When using AI to analyze participant data we must ensure that the data remains secure and that participants are appropriately informed of the potential uses of their data. Researchers should consider if and how to describe the use of AI tools in their survey consent procedures. Researchers should remain aware of the risk of disclosure of sensitive or personally identifying information."
+          ],
+          "title": "Best Practices for Using Generative AI for Survey Research - AAPOR",
+          "url": "https://aapor.org/newsletters/best-practices-for-using-generative-ai-for-survey-research/"
+        }
+      ],
+      "status": "ready"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[14476]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <AC0D75A8-23BF-301F-B7CE-3E5CC0C1BC06> /Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/libLLVM.dylib' (no such file), '/Users/aradhyamishra/lib/libLLVM.dylib' (no such file), '/usr/local/lib/libLLVM.dylib' (no such file), '/usr/lib/libLLVM.dylib' (no such file, not in dyld cache)
+
+
+warning: `simfrancisco` (bin "daemon") generated 1 warning
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[14465]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <AC0D75A8-23BF-301F-B7CE-3E5CC0C1BC06> /Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/libLLVM.dylib' (no such file), '/Users/aradhyamishra/lib/libLLVM.dylib' (no such file), '/usr/local/lib/libLLVM.dylib' (no such file), '/usr/lib/libLLVM.dylib' (no such file, not in dyld cache)
+
+
+warning: `simfrancisco` (bin "server") generated 1 warning
+   Compiling simfrancisco v0.1.0 (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/outputs/silico/crates/sim-core)
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[14452]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <AC0D75A8-23BF-301F-B7CE-3E5CC0C1BC06> /Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/libLLVM.dylib' (no such file), '/Users/aradhyamishra/lib/libLLVM.dylib' (no such file), '/usr/local/lib/libLLVM.dylib' (no such file), '/usr/lib/libLLVM.dylib' (no such file, not in dyld cache)
+
+
+warning: `simfrancisco` (bin "validate") generated 1 warning
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[14487]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <AC0D75A8-23BF-301F-B7CE-3E5CC0C1BC06> /Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/libLLVM.dylib' (no such file), '/Users/aradhyamishra/lib/libLLVM.dylib' (no such file), '/usr/local/lib/libLLVM.dylib' (no such file), '/usr/lib/libLLVM.dylib' (no such file, not in dyld cache)
+
+
+warning: `simfrancisco` (bin "ingest_pums") generated 1 warning
+    Finished `test` profile [unoptimized] target(s) in 4.82s
+     Running tests/verifier.rs (/Users/aradhyamishra/Documents/Codex/2026-10-17/se/work/silico-target/debug/deps/verifier-65a9ff5f3e1931e2)
+
+running 29 tests
+test verifier::research_tests::live_search_never_sends_current_facts_into_historical_validation ... ok
+test verifier::research_tests::invalid_search_configuration_never_calls_network ... ok
+test verifier::research_tests::you_search_has_bounded_wire_contract_and_provenance ... ok
+test verifier::research_tests::search_rejects_blank_domain_labels_and_clips_unicode_without_breaking_utf8 ... ok
+test verifier::tests::configuration_does_not_leak_keys_or_accept_an_unrelated_model ... ok
+test verifier::research_tests::search_deduplicates_filters_and_caps_untrusted_evidence ... ok
+test verifier::tests::complete_fixture_reviews_once_and_cannot_claim_live_completion ... ok
+test verifier::research_tests::research_pipeline_skips_search_for_local_defects_and_skips_model_on_search_failure ... ok
+test verifier::research_tests::search_errors_are_explicit_sanitized_and_never_ready ... ok
+test verifier::tests::exhausted_repairs_block_but_a_final_round_can_still_pass ... ok
+test verifier::research_tests::research_pipeline_binds_sources_without_rewriting_plan_or_claiming_live ... ok
+test verifier::tests::plan_revisions_invalidate_previously_completed_results ... ok
+test verifier::research_tests::untrusted_search_instructions_stay_data_and_grounding_requires_a_source_citation ... ok
+test verifier::tests::real_http_adapter_checks_status_size_model_and_finish_reason ... ok
+test verifier::tests::missing_duplicated_and_invented_review_checks_are_blocked ... ok
+test verifier::tests::related_local_failures_share_one_targeted_rerun ... ok
+test verifier::tests::actionable_review_produces_only_targeted_supported_repairs ... ok
+test verifier::tests::sandbox_config_accepts_only_explicit_executables_and_stable_targets ... ok
+test verifier::tests::local_defects_never_spend_a_model_call ... ok
+test verifier::tests::model_identity_must_echo_every_binding ... ok
+test verifier::tests::receipt_cannot_be_reused_for_changed_results ... ok
+test verifier::tests::malformed_output_never_becomes_a_pass ... ok
+test verifier::tests::evidence_must_exist_and_cannot_cite_its_own_verdict ... ok
+test verifier::tests::provider_failures_are_explicit_and_have_no_fallback_or_retries ... ok
+test verifier::tests::malformed_envelopes_are_blocked_without_inference ... ok
+test verifier::tests::verdict_cannot_contradict_findings_or_pending_repairs ... ok
+test verifier::tests::timeout_cancels_a_slow_transport ... ok
+test verifier::tests::concurrency_queue_is_included_in_deadline ... ok
+test verifier::tests::sandbox_adapter_reads_bounded_sanitized_subprocess_output ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s

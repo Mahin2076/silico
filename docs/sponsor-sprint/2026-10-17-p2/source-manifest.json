@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-17T18:02:25.638635+00:00",
+  "base_commit": "c31a42c131afb702af086bb799f3601e255eceec",
+  "files": {
+    "crates/sim-core/src/verifier/README.md": "93459154705ba71f9e8ab505d8bbaebd93587ecc9da293efb4c331b13bbbdcc9",
+    "crates/sim-core/src/verifier/engine.rs": "80b7aac8c07c62a977b840628e8a05ca2c83aa1b5b68e399c6bb217060c51edc",
+    "crates/sim-core/src/verifier/fixtures/audience-mismatch.json": "e5545f52aa2a3dafe731eec5a88b72462bc1bce37ed40c685aa6aba162a202d1",
+    "crates/sim-core/src/verifier/fixtures/complete.json": "d739528a8da74e8e0f7c18b3f0702685a06a769d401bd5e28a7a30e4ae0a02a4",
+    "crates/sim-core/src/verifier/fixtures/fixture-review.json": "10aa136f192e8bef2d454095c72952896ecc049682f2122fc27515e7bd26ced4",
+    "crates/sim-core/src/verifier/fixtures/missing-scenario.json": "e2af411c6108dc713f1cc2abc9b497d62df5cea4d911a270da12c41f232bb55c",
+    "crates/sim-core/src/verifier/fixtures/unsupported-conclusion.json": "c820d6a132fc2e786a745af05e3cdea605698f4f7d94a9b9adcb25d6675f5ca4",
+    "crates/sim-core/src/verifier/mod.rs": "85399718beac0c69b2a84b71ca7406555b550066301f734ec4ff9fe5a93429b0",
+    "crates/sim-core/src/verifier/prompt.txt": "28b6826308b3ac35284d57c742881dd23db9ca76f27cbe8ab2398909738999ed",
+    "crates/sim-core/src/verifier/sandbox.rs": "f4f291831245a14deaea6700d41ed7d6b126431d5dda6397e101055ed4629e9a",
+    "crates/sim-core/src/verifier/sandbox_bridge.py": "52976704065efdc3d4ac2b597af34dae2986cd7cd2339cbc2aa1f2099f2a7a6d",
+    "crates/sim-core/src/verifier/tests.rs": "05c1f6f00a33c7b7f8429aeb8a6d32137526810f1cb71c84112d8d046766cd7a",
+    "crates/sim-core/src/verifier/transport.rs": "244035c93ad596facd2b10b4a189853fd71262ef62687988b65bc99cfdc4de99",
+    "crates/sim-core/src/verifier/types.rs": "24c7dafeaadc4cfd83f2457c6bbefc6e49cb8d79187d5ff06bd97a818f5b1e13",
+    "crates/sim-core/tests/verifier.rs": "f16cca5240338ff7c2141451dba25393cc3d7884f73966c028304f7564729f83",
+    "crates/sim-core/examples/p2_verify.rs": "3651293f2d4482ae6945322917560dab9152dbe788ae2464fb53733c16d81323"
+  }
+}

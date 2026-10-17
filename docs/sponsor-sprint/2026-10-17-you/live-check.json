@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-17T18:14:26.404651+00:00",
+  "exit_code": 0,
+  "research_status": "ready",
+  "research_error": null,
+  "search_calls": 1,
+  "sources": 5,
+  "verdict": "pass",
+  "receipt": {
+    "elapsed_ms": 13288,
+    "error_code": null,
+    "mode": "live",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "model_calls": 1,
+    "prompt_version": "silico-p2-verifier-v2-web",
+    "provider": "crusoe-managed-inference"
+  },
+  "web_findings": [
+    {
+      "check_id": "p2.web_sources",
+      "evidence": [
+        {
+          "pointer": "/web_research"
+        }
+      ],
+      "status": "pass",
+      "summary": "You.com sources have bounded, dated provenance and match the frozen evidence cutoff. Undated pages are background only."
+    },
+    {
+      "check_id": "p2.web_grounding",
+      "evidence": [
+        {
+          "pointer": "/web_research/sources/4"
+        },
+        {
+          "pointer": "/plan/assumptions/0"
+        },
+        {
+          "pointer": "/conclusions/0"
+        }
+      ],
+      "status": "pass",
+      "summary": "The retrieved sources discuss APOP's ethical standards for disclosure, AI in survey research, and the necessity of identifying synthetic data as non-human participants. Source 5 (Best Practices for Using Generative AI for Survey Research) is directly relevant to the experiment's assumption that the fixture is for software testing only and not a real survey, and supports the conclusion's limitation disclosure. The conclusion faithfully represents this by stating the synthetic nature and lack of real-world validity."
+    }
+  ]
+}

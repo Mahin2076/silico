@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-17T18:00:23.827490+00:00",
+  "exit_code": 4,
+  "key_environment_present": false,
+  "verdict": "blocked",
+  "receipt": {
+    "mode": "live",
+    "provider": "crusoe-via-openshell",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 1,
+    "elapsed_ms": 10753,
+    "error_code": null
+  },
+  "repair_count": 2
+}

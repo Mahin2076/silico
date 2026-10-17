@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "request_hash": "b58fd8feb72883d33da99d4081c58432c11734d137666a1f8a982a218eac9a56",
+  "repair_round": 0,
+  "verdict": "pass",
+  "summary": "Explicit fixture review for contract development; not a live provider result.",
+  "findings": [
+    {
+      "check_id": "p2.input_integrity",
+      "status": "pass",
+      "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid.",
+      "evidence": [
+        {
+          "pointer": "/plan"
+        },
+        {
+          "pointer": "/goal"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.scenario_coverage",
+      "status": "pass",
+      "summary": "Every planned scenario has exactly one complete result.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.context_consistency",
+      "status": "pass",
+      "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash.",
+      "evidence": [
+        {
+          "pointer": "/plan/context"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.audience_consistency",
+      "status": "pass",
+      "summary": "Result audience IDs match their corresponding scenarios.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "coverage.complete",
+      "status": "pass",
+      "summary": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "status": "pass",
+      "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.deterministic_checks",
+      "status": "pass",
+      "summary": "Required deterministic findings are present, evidenced, and passing.",
+      "evidence": [
+        {
+          "pointer": "/plan/completion_checks"
+        },
+        {
+          "pointer": "/deterministic_findings"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.evidence_completeness",
+      "status": "pass",
+      "summary": "Completed results contain payloads and conclusions are available for review.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        },
+        {
+          "pointer": "/conclusions"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.goal_alignment",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    },
+    {
+      "check_id": "decision.caveat",
+      "status": "pass",
+      "summary": "The labeled fixture contains the expected comparison and limitations.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload"
+        }
+      ]
+    }
+  ],
+  "repair_requests": [],
+  "receipt": {
+    "mode": "mock",
+    "provider": "explicit-fixture",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 1,
+    "elapsed_ms": 3,
+    "error_code": null
+  }
+}

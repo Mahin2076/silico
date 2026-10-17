@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "120980bcc5d4d78aa72a525a7fd414da8bcd1b3151509943caea5f823accc2b1",
+  "request_hash": "22bffb449e4ac8a178ca121490f013436fc3a53fea42e3bcdbbaa5c172a958fa",
+  "repair_round": 0,
+  "verdict": "pass",
+  "summary": "All required checks pass: goal alignment is satisfied by comparing messages A and B for the same frozen adult audience; assumptions are explicit and consistent; conclusion is supported by results and correctly states synthetic-data limitations; decision.caveat is met by the conclusion's avoidance of real-world claims.",
+  "findings": [
+    {
+      "check_id": "p2.input_integrity",
+      "status": "pass",
+      "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid.",
+      "evidence": [
+        {
+          "pointer": "/plan"
+        },
+        {
+          "pointer": "/goal"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.scenario_coverage",
+      "status": "pass",
+      "summary": "Every planned scenario has exactly one complete result.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.context_consistency",
+      "status": "pass",
+      "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash.",
+      "evidence": [
+        {
+          "pointer": "/plan/context"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.audience_consistency",
+      "status": "pass",
+      "summary": "Result audience IDs match their corresponding scenarios.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "coverage.complete",
+      "status": "pass",
+      "summary": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "status": "pass",
+      "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.deterministic_checks",
+      "status": "pass",
+      "summary": "Required deterministic findings are present, evidenced, and passing.",
+      "evidence": [
+        {
+          "pointer": "/plan/completion_checks"
+        },
+        {
+          "pointer": "/deterministic_findings"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.evidence_completeness",
+      "status": "pass",
+      "summary": "Completed results contain payloads and conclusions are available for review.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        },
+        {
+          "pointer": "/conclusions"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.goal_alignment",
+      "status": "pass",
+      "summary": "Scenarios compare message A and message B for the same frozen adult audience (sf-adults-fixture), addressing the goal of stating which has higher modeled support.",
+      "evidence": [
+        {
+          "pointer": "/goal"
+        },
+        {
+          "pointer": "/plan/scenarios/0"
+        },
+        {
+          "pointer": "/plan/scenarios/1"
+        },
+        {
+          "pointer": "/results/0/scenario_id"
+        },
+        {
+          "pointer": "/results/1/scenario_id"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "status": "pass",
+      "summary": "Assumptions are explicit: fixture tests software behavior only, not observed survey or predictive validity; messages shown to same frozen synthetic adult audience with equal archetype weighting.",
+      "evidence": [
+        {
+          "pointer": "/plan/assumptions/0"
+        },
+        {
+          "pointer": "/plan/assumptions/1"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "status": "pass",
+      "summary": "Conclusion is supported by results: message A weighted_yes_share=0.6, message B=0.65, yielding a 5-point difference in favor of B, with synthetic-data limitations preserved.",
+      "evidence": [
+        {
+          "pointer": "/results/0/payload/weighted_yes_share"
+        },
+        {
+          "pointer": "/results/1/payload/weighted_yes_share"
+        },
+        {
+          "pointer": "/conclusions/0"
+        }
+      ]
+    },
+    {
+      "check_id": "decision.caveat",
+      "status": "pass",
+      "summary": "Conclusion reports A/B comparison as labeled software fixture and does not claim real-world public support or causal impact, explicitly noting it does not measure real residents or establish predictive accuracy.",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        }
+      ]
+    }
+  ],
+  "repair_requests": [],
+  "receipt": {
+    "mode": "live",
+    "provider": "crusoe-managed-inference",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 1,
+    "elapsed_ms": 6871,
+    "error_code": null
+  }
+}

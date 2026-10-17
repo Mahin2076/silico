@@ -1,0 +1,41 @@
+{
+  "checked_at": "2026-10-17T18:17:10.665714+00:00",
+  "checks": [
+    {
+      "case": "research-needs-live",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "passed": true
+    },
+    {
+      "case": "domain-needs-query",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "passed": true
+    },
+    {
+      "case": "legacy-mock-pass",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true
+    },
+    {
+      "case": "legacy-plan-hash",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true
+    },
+    {
+      "case": "missing-you-key",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "passed": true
+    },
+    {
+      "case": "local-repair-skips-paid-work",
+      "exit_code": 3,
+      "expected_exit_code": 3,
+      "passed": true
+    }
+  ]
+}
