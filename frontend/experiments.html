@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Silico · Experiment lab</title><link rel="stylesheet" href="experiments.css"></head>
+<body>
+<header><a class="brand" href="experiments.html">silico<span> / experiment lab</span></a><a id="city-link" href="index.html">Explore the city ↗</a></header>
+<main>
+<section class="intro"><div class="eyebrow">A SMALL EXPERIMENT. A CLEAR FINISH LINE.</div><h1>Before the real world,<br>run it in <em>silico.</em></h1><p>Compare an idea across a synthetic city. Set the assumptions, run the scenarios, and see exactly what passed verification.</p></section>
+<div class="layout">
+<aside>
+<form id="experiment-form" class="panel">
+<div class="section-title"><span class="number">01</span><h2>Define the experiment</h2></div>
+<label for="mode">Run mode</label><select id="mode"><option value="demo">Demo · no API calls</option><option value="live">Live · Crusoe inference</option></select>
+<p id="mode-note" class="hint">A fixed lunch-price fixture, with an explicitly simulated verifier.</p>
+<label for="city">Synthetic city</label><select id="city"><option value="sf">San Francisco</option></select>
+<label for="goal">What do you want to learn?</label><textarea id="goal" rows="5" maxlength="2000" required readonly>Compare a vegetarian takeaway lunch at $8, $10, and $12</textarea>
+<label class="checkbox" id="inject-label"><input type="checkbox" id="inject" checked> Omit one scenario to test automatic repair</label>
+<button type="submit" id="start">Run experiment <span>↗</span></button>
+<p class="hint" id="connection" role="status">Connecting to the local runner…</p>
+</form>
+<section class="panel history"><div class="section-title"><span class="number">02</span><h2>Saved runs</h2></div><div id="history"><p class="hint">Your receipts will appear here.</p></div></section>
+<p class="footnote">Synthetic responses are estimates, not observed behavior. Verification checks execution and evidence, not real-world predictive accuracy.</p>
+</aside>
+<section class="workspace" aria-label="Experiment results">
+<div id="empty" class="panel empty"><div class="orb">s.</div><h2>An idea becomes a testable plan.</h2><p>Every run keeps the same audience, model, date, and context across scenarios. Incomplete work cannot pass.</p><div class="empty-steps"><span>Plan</span><b>→</b><span>Simulate</span><b>→</b><span>Verify</span><b>↺</b><span>Repair</span></div></div>
+<div id="run" hidden>
+<section class="panel run-head"><div class="eyebrow" id="run-mode"></div><div class="status-row"><h2 id="status" aria-live="polite"></h2><button id="cancel" class="secondary" hidden>Cancel run</button></div><p id="run-goal"></p><p id="verifier-summary" hidden></p><div class="stats" id="stats"></div><p class="notice" id="run-notice" hidden></p><div class="actions"><button id="export" class="secondary">Download receipt ↓</button><button id="export-verifier" class="secondary">Export P2 input ↓</button></div></section>
+<section class="panel"><div class="section-title"><span class="number">03</span><h2>Scenarios & results</h2></div><div id="scenarios"></div></section>
+<div class="evidence-grid"><section class="panel"><h2>Completion checks</h2><div id="checks"></div></section><section class="panel"><h2>Run timeline</h2><ol id="events"></ol></section></div>
+<details class="panel"><summary>Frozen context & provenance</summary><pre id="context"></pre></details>
+</div>
+</section>
+</div>
+</main>
+<footer>silico · computer-simulated experiments<span>PLAN → EXECUTE → VERIFY → REPAIR</span></footer>
+<script type="module" src="src/experiment-page.js"></script>
+</body></html>

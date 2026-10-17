@@ -23,7 +23,8 @@ import { buildVerifiedDataModel, renderVerifiedData, bindVerifiedData, reduceVer
 import { snapshotAudience, describeAudience, audienceHeader, audienceScope } from "./audience.js";
 import { initFeedPanel, refreshFeedPanel, lineageItems } from "./feedpanel.js?v=18";
 import { initTour, startTour } from "./tour.js?v=1";
-import { isFreshWorkspace } from "./workspace.js?v=2";
+import { createMapExperiments } from "./map-experiments.js";
+import { isFreshWorkspace, WORKSPACE } from "./workspace.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -207,8 +208,9 @@ map.onNeedChatter = requestChatter;
 const isBusy = () => state.phase === "waiting" || state.phase === "reveal";
 const inputOpen = () => els.ask.dataset.state === "input";
 
-const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test" };
+const ASK_MODE_LABEL = { predict: "ask", ab: "A/B test", marketing: "post test", experiment: "experiment" };
 const ASK_MODE_PLACEHOLDER = {
+  experiment: "What should we test? e.g. compare a vegetarian lunch at $8, $10, and $12",
   predict: "predict anything — e.g. will a Democrat win the 2026 California governor race?",
   ab: "Which message makes you more likely to support this proposal?",
   marketing: "Do you support the proposed transit measure?",
@@ -224,12 +226,15 @@ function setAsk(s) {
 // switching never leaves the place the question is typed.
 function setAskMode(mode) {
   state.askMode = mode;
+  document.body.classList.toggle("experiment-mode", mode === "experiment");
+  if (mode !== "experiment") mapExperiments.close();
   els.ask.dataset.mode = mode;
   for (const b of els.askModes.querySelectorAll(".ask-mode")) b.setAttribute("aria-checked", b.dataset.mode === mode ? "true" : "false");
+  $("experiment-hint").hidden = mode !== "experiment";
   els.abFields.hidden = mode !== "ab";
   els.marketingFields.hidden = mode !== "marketing";
   els.askInput.placeholder = ASK_MODE_PLACEHOLDER[mode];
-  els.askInput.setAttribute("aria-label", mode === "ab" ? "Evaluation question" : mode === "marketing" ? "Target question" : "Predict anything");
+  els.askInput.setAttribute("aria-label", mode === "experiment" ? "Experiment goal" : mode === "ab" ? "Evaluation question" : mode === "marketing" ? "Target question" : "Predict anything");
   els.askError.textContent = "";
   if (els.ask.dataset.state !== "busy") setAsk(els.ask.dataset.state);
 }
@@ -535,7 +540,7 @@ async function boot() {
     const cities = (data?.cities || []).filter((c) => c && c.slug);
     if (cities.length) {
       state.cities = cities;
-      initial = cities.find((c) => c.default) || cities[0];
+      initial = cities.find((c) => c.slug === new URLSearchParams(location.search).get("city")) || cities.find((c) => c.default) || cities[0];
       buildTitleSelect();
     }
   } catch (err) {
@@ -583,6 +588,7 @@ async function loadCity(city, { filters = state.filters, preserveOnError = false
     state.rawResidents = agents;
     state.simId = sim.simulation_id;
     state.mainBranch = sim.main_branch;
+    syncTimelineLink();
     state.filters = filters;
     state.filterSourceRecords = sim.source_records ?? city.n_pums ?? null;
     map.setAgents(agents);
@@ -754,7 +760,24 @@ function closeTitleMenu() {
 function toggleTitleMenu() { titleMenuOpen() ? closeTitleMenu() : openTitleMenu(); }
 
 // reflect the active city in the title button + the menu; lock while swapping
+function syncTimelineLink() {
+  const url = new URL("timeline.html", location.href);
+  url.search = location.search;
+  url.searchParams.set("city", citySlug());
+  url.searchParams.set("ws", WORKSPACE);
+  url.searchParams.delete("branch");
+  url.searchParams.delete("residents");
+  if (state.mainBranch) {
+    url.searchParams.set("branch", state.mainBranch);
+    url.searchParams.set("residents", state.residents);
+  }
+  $("timeline-link").href = url.href;
+}
+$("timeline-link").addEventListener("click", syncTimelineLink);
+$("timeline-link").addEventListener("contextmenu", syncTimelineLink);
+
 function syncActiveTitle() {
+  syncTimelineLink();
   const city = state.cities.find((c) => c.slug === citySlug());
   els.titleCurrent.textContent = city?.display || state.city?.display || "San Francisco";
   els.titleMenu.querySelectorAll(".title-option").forEach((btn) => {
@@ -1180,6 +1203,11 @@ function looksLikeVerifiedQuestion(question) {
 async function runPrediction(question) {
   question = (question || "").trim();
   if (!question) return;
+  if (state.askMode === "experiment") {
+    try { await mapExperiments.runGoal(question); }
+    catch (error) { els.askError.textContent = error.message; }
+    return;
+  }
   if (state.askMode === "ab") return runAbTest();
   if (state.askMode === "marketing") return runMarketingTest();
   if (looksLikeVerifiedQuestion(question)) return runVerifiedQuery(question);
@@ -2054,6 +2082,23 @@ function escapeHtml(s) {
 }
 
 const typingTarget = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+
+const mapExperiments = createMapExperiments({
+  getCity: () => state.city?.slug || "sf",
+  validateAudience: () => {
+    if (state.switching) throw new Error("Wait for the city to finish switching.");
+    if (Object.keys(state.filters).length) throw new Error("Experiments currently use the whole city. Clear resident filters before starting an experiment.");
+  },
+  returnFocus: () => els.askInput.focus(),
+});
+$("experiment-demo").addEventListener("click", event => {
+  event.stopPropagation();
+  mapExperiments.demo().catch(error => { els.askError.textContent = error.message; });
+});
+$("experiment-results").addEventListener("click", event => {
+  event.stopPropagation();
+  mapExperiments.open().catch(error => { els.askError.textContent = error.message; });
+});
 
 els.askSubmit.addEventListener("click", event => { event.stopPropagation(); runPrediction(els.askInput.value); });
 

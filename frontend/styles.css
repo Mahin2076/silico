@@ -1,10 +1,9 @@
 /* ─────────────────────────────────────────────────────────────────────────
    sim francisco · pixel-map frontend
 
-   Consumer map chrome, in the Apple Maps / Mapbox idiom: near-opaque white
-   cards floating on soft diffuse shadows, generous padding, one blue accent,
-   black text. Cards are opaque rather than glassy on purpose — that is what
-   keeps light chrome legible over bright satellite imagery.
+   Consumer map chrome: frosted glass over the city, soft edge highlights,
+   generous spacing, and one blue accent. Opaque fallbacks and a reduced-
+   transparency variant preserve readability.
 
    Type follows the Apple HIG scale; space follows a 4px step. Values come
    from the scales in :root.
@@ -1289,3 +1288,63 @@ body.offline-demo .result-card { max-height: min(60dvh, 720px); }
 .manual-title { margin: 0 0 var(--s-3); font-size: var(--fs-title3); font-weight: var(--fw-bold); letter-spacing: var(--tr-tight); line-height: var(--lh-tight); color: var(--ink); }
 .manual-step .about-list { margin-bottom: 0; }
 .manual-step + .about-h { margin-top: var(--s-5); }
+
+/* Experiments share the map composer and its white/blue visual language. */
+.experiment-hint { margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; font: 11px/1.5 var(--font); color: var(--ink-3); }
+.experiment-hint[hidden] { display: none; }
+.experiment-shortcuts { display: flex; gap: 10px; }
+.experiment-hint button { background: transparent; color: #007aff; border: 0; padding: 2px 0; font: inherit; cursor: pointer; }
+.map-experiment-panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(100dvh - var(--experiment-dock-top, 600px) + 12px); width: min(520px, calc(100vw - 32px)); max-height: min(46dvh, calc(var(--experiment-dock-top, 600px) - 116px)); z-index: 30; overflow: auto; overscroll-behavior: contain; border: 1px solid rgba(0,0,0,.07); border-radius: 18px; box-shadow: 0 8px 28px #0002; background: rgba(255,255,255,.97); pointer-events: auto; }
+.map-experiment-panel[hidden] { display: none; }
+body.experiment-mode #ask .ask-head, body.experiment-mode #feed-panel, body.experiment-mode #status { display: none; }
+@media(max-width:760px) { #status { display: none; } .map-experiment-panel { width: calc(100vw - 32px); } }
+
+/* Frosted glass. The map remains sharp; blur is limited to the small UI surfaces. */
+:root {
+  --glass-surface: rgba(250, 252, 255, .96);
+  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,.52), rgba(255,255,255,.04) 42%, rgba(255,255,255,.02) 64%, rgba(255,255,255,.24));
+  --glass-edge: rgba(255,255,255,.75);
+  --glass-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.4), inset 0 0 2px 1px rgba(255,255,255,.5), inset 0 0 12px 3px rgba(255,255,255,.25), 0 10px 32px rgba(9,35,47,.18), 0 2px 5px rgba(9,35,47,.08);
+}
+.title, .ask, .result-card, .info-btn, .return, .map-experiment-panel, #feed-panel, .timeline-link, .glass-pill {
+  background: var(--glass-highlight), var(--glass-surface);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  background-clip: padding-box;
+}
+.title { border-radius: 22px; }
+.ask { border-radius: 28px; }
+.map-experiment-panel, .result-card { border-radius: 24px; }
+.title-kicker, .experiment-hint { color: rgba(18,33,46,.6); }
+.ask-input::placeholder { color: rgba(18,33,46,.52); }
+.ask-mode[aria-checked="true"] { color: #005bc1; background: rgba(0,122,255,.12); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+.ask-send { background: linear-gradient(155deg,#48a6ff,#007aff 65%,#0064e0); box-shadow: inset 0 1px 1px #ffffff90, 0 3px 9px #007aff30; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass-surface: rgba(244,249,255,.56); }
+  .title, .ask, .result-card, .info-btn, .return, .map-experiment-panel, #feed-panel, .timeline-link, .glass-pill {
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-surface: #fafcff; --glass-highlight: linear-gradient(transparent,transparent); }
+  .title, .ask, .result-card, .info-btn, .return, .map-experiment-panel, #feed-panel, .timeline-link, .glass-pill {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+
+/* Timeline lives on its own page; keep its history available to map charts. */
+body:not(.timeline-page) #feed-panel { display: none !important; }
+.timeline-link {
+  position: absolute; top: 26px; right: 20px; z-index: 21;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 16px; border-radius: 24px;
+  font: 500 14px var(--font); color: #173343; text-decoration: none; pointer-events: auto;
+}
+.timeline-link:hover, .glass-pill:hover { background-color: rgba(255,255,255,.78); }
+.timeline-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+#status { right: 158px; width: auto; max-width: min(380px, calc(100vw - 500px)); }
+@media(max-width:760px) {
+  .timeline-link { top: 20px; right: 12px; padding: 0 12px; }
+  .title-select { max-width: calc(100vw - 150px); }
+}

@@ -47,7 +47,7 @@ export function workspaceHeaders() {
 export function shareUrl() {
   const url = new URL(globalThis.location.href);
   const keep = new URLSearchParams();
-  for (const k of ["backend", "port", "as_of", "model"]) {
+  for (const k of ["backend", "port", "as_of", "model", "city"]) {
     const v = url.searchParams.get(k);
     if (v) keep.set(k, v);
   }

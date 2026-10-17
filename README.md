@@ -48,6 +48,21 @@ The work below is planned hackathon development on top of the existing Simtra co
 | **P1 — Mahin Bharathwaj** | `p1` | Experiment planning, execution, checks, and repair loop | Done Means Done |
 | **P2 — Aradhya Mishra** | `p2` | Independent Nemotron verifier; optional sandbox integration | Best Use of Nemotron; optional Best Use of NemoClaw & OpenShell |
 
+### Run the P1 experiment lab locally
+
+P1 includes **Experiment mode in the city map’s input box**, with compact results, saved receipts, and a deterministic failure-and-repair demo. Select Experiment, type your goal, and send; use Try demo for a fixture run without API calls. Assumptions and checks expand under Details. The standalone lab remains available for development. From the repository root:
+
+```sh
+mkdir -p runs
+PORT=8083 TILES_DB=server_tiles/sf.db CACHE_DB=runs/cache.db STATE_DB=runs/state.db cargo run -p simfrancisco --bin server
+# In a second terminal:
+python3 -m http.server 5176 --bind 127.0.0.1 --directory frontend
+```
+
+Open [the city map](http://localhost:5176/index.html?backend=local&port=8083) and select **Experiment**. Demo mode needs no API key. Try demo deliberately omits one scenario so you can see detection → targeted repair → a labeled demo receipt. Live mode uses server-side `CRUSOE_API_KEY` and `CRUSOE_MODEL`; an independent P2 verifier is required before a live run can complete. Set variables in the shell or the ignored `.env` file (which overrides shell values). The new lab always defaults to the local backend.
+
+The integration boundary, schemas, limitations, and test commands are in [P1–P2 contract](docs/P1-P2-CONTRACT.md). Plan revision requests stop for user input and require a new run. Completed execution verifies the workflow, not predictive accuracy.
+
 ### P1 — Experiment workflow (`p1`)
 
 - Turn a user request into explicit scenarios, assumptions, and completion checks.
@@ -58,7 +73,7 @@ The work below is planned hackathon development on top of the existing Simtra co
 - Show planning, simulation, verification, repair progress, and the final experiment receipt.
 - Test that missing scenarios are repaired and incomplete runs never report success.
 
-**Owns:** a new `crates/sim-core/src/experiment/` module, shared provider changes in `model.rs`, route integration in `api.rs`, module registration in `lib.rs`, and frontend changes.
+**Owns:** a new `crates/sim-core/src/experiment/` module, shared provider client in `crusoe.rs`, route integration in `api.rs`, module registration in `lib.rs`, and frontend changes.
 
 ### P2 — Nemotron verifier (`p2`)
 
@@ -69,7 +84,7 @@ The work below is planned hackathon development on top of the existing Simtra co
 - Test deliberately incomplete scenarios, mismatched audiences, and unsupported conclusions.
 - After the verifier works, optionally sandbox research/tool execution with NemoClaw & OpenShell for the additional partner prize.
 
-**Owns:** a new `crates/sim-core/src/verifier/` module, verifier prompts, tests, and optional sandbox configuration. Coordinate shared provider requirements with P1; P1 integrates changes to `model.rs`, `api.rs`, `lib.rs`, and the frontend to avoid merge conflicts.
+**Owns:** a new `crates/sim-core/src/verifier/` module, verifier prompts, tests, and optional sandbox configuration. Coordinate shared provider requirements with P1; P1 integrates changes to `crusoe.rs`, `api.rs`, `lib.rs`, and the frontend to avoid merge conflicts.
 
 ### Shared integration contract
 

@@ -1,0 +1,539 @@
+{
+  "schema_version": "0.1",
+  "run_id": "adb7d05371cc3769fe35c4c654552c0284fc0c7fe859305ffcbb621678503ea6",
+  "plan_hash": "04af4d14736f38af4659a0e85eaea00f132669944ebf0ed62cff9f321ff2e72e",
+  "round": 1,
+  "plan": {
+    "goal": "Compare a vegetarian takeaway lunch at $8, $10, and $12",
+    "city": "sf",
+    "simulation_id": "experiment-adb7d05371cc3769fe35c4c654552c0284fc0c7fe859305ffcbb621678503ea6",
+    "workspace": "3a81a3190763",
+    "audience_hash": "6825cab3dcb4d29dcd136dacfcdb2d429e7611a52f950ce3ea278b8369c104a8",
+    "context_hash": "43ff4c25740f81a4f294f419ebfc135742caac4043519f99f6883d992debbb2f",
+    "as_of_date": "2026-10-17",
+    "model": "demo-fixture-v1",
+    "scenarios": [
+      {
+        "scenario_id": "price_8",
+        "question": "Would you buy this lunch?",
+        "description": "A takeaway vegetarian lunch priced at $8",
+        "options": [
+          "Would buy",
+          "Would not buy"
+        ],
+        "assumptions": [
+          "Illustrative demo fixture; no model inference or observed purchasing data",
+          "Same meal, location, availability, and advertising across scenarios",
+          "Price is $8; fixture scenario 1"
+        ]
+      },
+      {
+        "scenario_id": "price_10",
+        "question": "Would you buy this lunch?",
+        "description": "A takeaway vegetarian lunch priced at $10",
+        "options": [
+          "Would buy",
+          "Would not buy"
+        ],
+        "assumptions": [
+          "Illustrative demo fixture; no model inference or observed purchasing data",
+          "Same meal, location, availability, and advertising across scenarios",
+          "Price is $10; fixture scenario 2"
+        ]
+      },
+      {
+        "scenario_id": "price_12",
+        "question": "Would you buy this lunch?",
+        "description": "A takeaway vegetarian lunch priced at $12",
+        "options": [
+          "Would buy",
+          "Would not buy"
+        ],
+        "assumptions": [
+          "Illustrative demo fixture; no model inference or observed purchasing data",
+          "Same meal, location, availability, and advertising across scenarios",
+          "Price is $12; fixture scenario 3"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "check_id": "price_8:coverage",
+        "kind": "coverage",
+        "requirement": "coverage must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_8"
+        ]
+      },
+      {
+        "check_id": "price_8:context",
+        "kind": "context",
+        "requirement": "context must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_8"
+        ]
+      },
+      {
+        "check_id": "price_8:probabilities",
+        "kind": "probabilities",
+        "requirement": "probabilities must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_8"
+        ]
+      },
+      {
+        "check_id": "price_8:arithmetic",
+        "kind": "arithmetic",
+        "requirement": "arithmetic must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_8"
+        ]
+      },
+      {
+        "check_id": "price_10:coverage",
+        "kind": "coverage",
+        "requirement": "coverage must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_10"
+        ]
+      },
+      {
+        "check_id": "price_10:context",
+        "kind": "context",
+        "requirement": "context must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_10"
+        ]
+      },
+      {
+        "check_id": "price_10:probabilities",
+        "kind": "probabilities",
+        "requirement": "probabilities must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_10"
+        ]
+      },
+      {
+        "check_id": "price_10:arithmetic",
+        "kind": "arithmetic",
+        "requirement": "arithmetic must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_10"
+        ]
+      },
+      {
+        "check_id": "price_12:coverage",
+        "kind": "coverage",
+        "requirement": "coverage must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_12"
+        ]
+      },
+      {
+        "check_id": "price_12:context",
+        "kind": "context",
+        "requirement": "context must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_12"
+        ]
+      },
+      {
+        "check_id": "price_12:probabilities",
+        "kind": "probabilities",
+        "requirement": "probabilities must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_12"
+        ]
+      },
+      {
+        "check_id": "price_12:arithmetic",
+        "kind": "arithmetic",
+        "requirement": "arithmetic must pass for every archetype in this scenario",
+        "scenario_ids": [
+          "price_12"
+        ]
+      },
+      {
+        "check_id": "goal_alignment",
+        "kind": "semantic",
+        "requirement": "Scenarios answer the original goal, assumptions are explicit, and the results support only the stated hypothetical comparison. Missing evidence must be unknown, not pass.",
+        "scenario_ids": [
+          "price_8",
+          "price_10",
+          "price_12"
+        ]
+      }
+    ],
+    "max_repair_rounds": 2
+  },
+  "results": [
+    {
+      "scenario_id": "price_8",
+      "attempt": 1,
+      "status": "complete",
+      "audience_hash": "6825cab3dcb4d29dcd136dacfcdb2d429e7611a52f950ce3ea278b8369c104a8",
+      "context_hash": "43ff4c25740f81a4f294f419ebfc135742caac4043519f99f6883d992debbb2f",
+      "model": "demo-fixture-v1",
+      "as_of_date": "2026-10-17",
+      "expected_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "answered_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "distribution": [
+        {
+          "option": "Would buy",
+          "probability": 0.7161606451559045
+        },
+        {
+          "option": "Would not buy",
+          "probability": 0.28383935484409534
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_id": "price_10",
+      "attempt": 1,
+      "status": "complete",
+      "audience_hash": "6825cab3dcb4d29dcd136dacfcdb2d429e7611a52f950ce3ea278b8369c104a8",
+      "context_hash": "43ff4c25740f81a4f294f419ebfc135742caac4043519f99f6883d992debbb2f",
+      "model": "demo-fixture-v1",
+      "as_of_date": "2026-10-17",
+      "expected_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "answered_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "distribution": [
+        {
+          "option": "Would buy",
+          "probability": 0.5961606451559046
+        },
+        {
+          "option": "Would not buy",
+          "probability": 0.4038393548440953
+        }
+      ],
+      "error": null
+    },
+    {
+      "scenario_id": "price_12",
+      "attempt": 2,
+      "status": "complete",
+      "audience_hash": "6825cab3dcb4d29dcd136dacfcdb2d429e7611a52f950ce3ea278b8369c104a8",
+      "context_hash": "43ff4c25740f81a4f294f419ebfc135742caac4043519f99f6883d992debbb2f",
+      "model": "demo-fixture-v1",
+      "as_of_date": "2026-10-17",
+      "expected_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "answered_archetype_ids": [
+        "a000",
+        "a001",
+        "a002",
+        "a003",
+        "a004",
+        "a005",
+        "a006",
+        "a007",
+        "a008",
+        "a009",
+        "a010",
+        "a011",
+        "a012",
+        "a013",
+        "a014",
+        "a015",
+        "a016",
+        "a017",
+        "a018",
+        "a019",
+        "a020",
+        "a021",
+        "a022",
+        "a023",
+        "a024",
+        "a025",
+        "a026",
+        "a027",
+        "a028",
+        "a029",
+        "a030",
+        "a031",
+        "a032"
+      ],
+      "distribution": [
+        {
+          "option": "Would buy",
+          "probability": 0.4761606451559048
+        },
+        {
+          "option": "Would not buy",
+          "probability": 0.5238393548440952
+        }
+      ],
+      "error": null
+    }
+  ],
+  "deterministic_checks": [
+    {
+      "check_id": "price_8:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_8:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_8:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_8:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_8"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    },
+    {
+      "check_id": "price_10:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_10:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_10:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_10:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_10"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    },
+    {
+      "check_id": "price_12:coverage",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Every expected archetype answered"
+    },
+    {
+      "check_id": "price_12:context",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Audience, evidence, date, and model match the frozen plan"
+    },
+    {
+      "check_id": "price_12:probabilities",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Ordered outcome probabilities are valid and sum to one"
+    },
+    {
+      "check_id": "price_12:arithmetic",
+      "status": "pass",
+      "scenario_ids": [
+        "price_12"
+      ],
+      "evidence": "Reported estimates match independently recomputed Census-weighted totals"
+    }
+  ]
+}

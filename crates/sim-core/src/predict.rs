@@ -162,9 +162,9 @@ pub fn turnout_propensity(a: &Agent, income_q: usize) -> f64 {
     p.clamp(0.20, 0.98)
 }
 
-struct Cluster {
-    rep_idx: usize,
-    member_idx: Vec<usize>,
+pub(crate) struct Cluster {
+    pub(crate) rep_idx: usize,
+    pub(crate) member_idx: Vec<usize>,
 }
 
 /// Cluster agents into archetypes, coarsening the key until under `max_clusters`.
@@ -177,7 +177,7 @@ pub fn distinct_records(pop: &Population) -> usize {
     seen.len()
 }
 
-fn cluster_agents(pop: &Population, max_clusters: usize) -> Vec<Cluster> {
+pub(crate) fn cluster_agents(pop: &Population, max_clusters: usize) -> Vec<Cluster> {
     let cutoffs = pop.income_cutoffs;
     // A narrowly filtered audience can rest on a few dozen Census records cloned into
     // thousands of residents. Bucketing those clones into demographic archetypes throws
