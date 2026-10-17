@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "run_id": "p2-fixture-complete",
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "request_hash": "f76b004d3c2d6fa3f346ab2edfe7dad881805fb840106b9584524e65ba19e569",
+  "repair_round": 0,
+  "verdict": "repair",
+  "summary": "Local integrity checks rejected completion; Nemotron was not called.",
+  "findings": [
+    {
+      "check_id": "p2.input_integrity",
+      "status": "pass",
+      "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid.",
+      "evidence": [
+        {
+          "pointer": "/plan"
+        },
+        {
+          "pointer": "/goal"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.scenario_coverage",
+      "status": "repair",
+      "summary": "Planned scenarios are missing, pending, or failed.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.context_consistency",
+      "status": "pass",
+      "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash.",
+      "evidence": [
+        {
+          "pointer": "/plan/context"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.audience_consistency",
+      "status": "pass",
+      "summary": "Result audience IDs match their corresponding scenarios.",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "coverage.complete",
+      "status": "pass",
+      "summary": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "status": "pass",
+      "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.deterministic_checks",
+      "status": "pass",
+      "summary": "Required deterministic findings are present, evidenced, and passing.",
+      "evidence": [
+        {
+          "pointer": "/plan/completion_checks"
+        },
+        {
+          "pointer": "/deterministic_findings"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.evidence_completeness",
+      "status": "pass",
+      "summary": "Completed results contain payloads and conclusions are available for review.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        },
+        {
+          "pointer": "/conclusions"
+        }
+      ]
+    },
+    {
+      "check_id": "p2.goal_alignment",
+      "status": "not_reviewed",
+      "summary": "Not reviewed because prerequisite integrity checks failed.",
+      "evidence": []
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "status": "not_reviewed",
+      "summary": "Not reviewed because prerequisite integrity checks failed.",
+      "evidence": []
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "status": "not_reviewed",
+      "summary": "Not reviewed because prerequisite integrity checks failed.",
+      "evidence": []
+    },
+    {
+      "check_id": "decision.caveat",
+      "status": "not_reviewed",
+      "summary": "Not reviewed because prerequisite integrity checks failed.",
+      "evidence": []
+    }
+  ],
+  "repair_requests": [
+    {
+      "id": "repair-1",
+      "action": "rerun_scenario",
+      "check_ids": [
+        "p2.scenario_coverage"
+      ],
+      "scenario_ids": [
+        "message-b"
+      ],
+      "reason": "Run only the missing, pending, or failed scenarios under the frozen plan."
+    }
+  ],
+  "receipt": {
+    "mode": "local",
+    "provider": "explicit-fixture",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 0,
+    "elapsed_ms": 6,
+    "error_code": null
+  }
+}

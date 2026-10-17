@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-17T18:00:24.949712+00:00",
+  "exit_code": 0,
+  "verdict": "pass",
+  "receipt": {
+    "mode": "live",
+    "provider": "crusoe-managed-inference",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "prompt_version": "silico-p2-verifier-v1",
+    "model_calls": 1,
+    "elapsed_ms": 9335,
+    "error_code": null
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "checked_at": "2026-10-17T18:03:52.783430+00:00",
+  "workspace_tests": {
+    "command": "cargo test --workspace --locked",
+    "exit_code": 0,
+    "passed": 210
+  },
+  "release_build": {
+    "command": "cargo build --release --bin validate --locked",
+    "exit_code": 0
+  },
+  "example_build": {
+    "command": "cargo build -p simfrancisco --example p2_verify --locked",
+    "exit_code": 0
+  },
+  "clippy_strict": {
+    "exit_code": 101,
+    "limitation": "13 pre-existing diagnostics in untouched backend files"
+  },
+  "clippy_with_existing_deny_lint_allowed": {
+    "command": "cargo clippy -p simfrancisco --test verifier --example p2_verify --locked -- -A clippy::absurd_extreme_comparisons",
+    "exit_code": 0,
+    "p2_warnings": 0,
+    "existing_library_warnings": 12
+  },
+  "evidence_sha256": {
+    "workspace-tests-final.txt": "a199a3f4733c2e439809fed2c2109586c1ed0f66539e520e7da24115d5eefb05",
+    "release-build.txt": "33a07bfbf990b2f3c6a0f98f53aaa87213c28d9e6516bdab49e22de61555ed4f",
+    "p2-build.txt": "60ba6528f2288c4bc2a54433dcf343721376e37284376b9c66edb786bd36ef15",
+    "clippy.txt": "a208c0e4b90f14b8fc1f8b825b5b4457aac752358d7e0f542133b1961991aaf5",
+    "clippy-scoped.txt": "9d5778a42fbbc5b88dcd2ffefd556d06066fd8002dfd868116b5cb642d19e36c",
+    "clippy-p2.txt": "0e057c2fb1395458f66911989c443634d46fe6b9f74180754a2f06c1e3a4cf9d",
+    "local-cli-check.json": "18e88e8e848fc6fe3ff9f36411f444eab3bf674fc583e3c3fdd2aab497e90fd5"
+  }
+}

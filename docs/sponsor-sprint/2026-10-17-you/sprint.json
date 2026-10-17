@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "project": "Silico P2 You.com web-grounded verification",
+  "as_of": "2026-10-17",
+  "scope": "P2-only You.com evidence retrieval and Nemotron grounded review; additive schema-v1 request attachment, no P1 shared-file edits.",
+  "integrations": [
+    {
+      "integration_id": "I001",
+      "sponsor": "You.com + Crusoe/NVIDIA Nemotron",
+      "purpose": "Retrieve bounded cited sources and validate a source-grounded independent experiment review.",
+      "docs_url": "https://you.com/docs/api-reference/search/v1-search",
+      "docs_checked_at": "2026-10-17",
+      "implementation_ref": "crates/sim-core/src/verifier/research.rs",
+      "env_vars": [
+        "YOU_API_KEY",
+        "CRUSOE_API_KEY"
+      ],
+      "checks": [
+        {
+          "check_id": "C001",
+          "required": true,
+          "mode": "local",
+          "status": "passed",
+          "expected": "Search wire bounds, unsafe/future/duplicate sources, error and empty handling, no search on failed preflight, request binding and mock completion guard pass.",
+          "observed": "29 verifier tests passed (9 web-research groups), plus six actual CLI compatibility/failure checks without network calls.",
+          "evidence_path": "verifier-tests.txt",
+          "evidence_sha256": "46fd3d5f1eab7fae83941bf960d8d6e812211126393913f05508b8471c682fe7",
+          "checked_at": "2026-10-17T18:15:45.240973+00:00"
+        },
+        {
+          "check_id": "C002",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "Actual Rust You.com search retrieves relevant primary-domain sources with live provenance.",
+          "observed": "Actual Rust pipeline: one live You.com search retrieved five usable AAPOR sources with explicit cutoff, URLs and excerpts; status ready, no search error.",
+          "evidence_path": "live-check.json",
+          "evidence_sha256": "8f0a21ea780a338f9611ac42e7e475a53329c4211dad6b12575c6b2c8a36f9c4",
+          "checked_at": "2026-10-17T18:14:41.631114+00:00"
+        },
+        {
+          "check_id": "C003",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "Actual Rust pipeline retrieves You.com sources and obtains a validated Nemotron review with required source-grounding evidence.",
+          "observed": "Actual Rust You.com + Crusoe Nemotron pipeline returned a validated pass, including an individual web-source citation and references to the assumption/conclusion it checked.",
+          "evidence_path": "live-research-review.json",
+          "evidence_sha256": "8c603afb1702f3f315ab8e6b7a15dcb80f5da187aeca3d54ce7f70669c653004",
+          "checked_at": "2026-10-17T18:14:41.626344+00:00"
+        },
+        {
+          "check_id": "C004",
+          "required": true,
+          "mode": "local",
+          "status": "passed",
+          "expected": "Workspace tests, example and release build pass with no P1 edits.",
+          "observed": "Final workspace: 219 tests passed, including all 29 verifier tests. Release validate and example builds pass. Scoped Clippy has only 12 existing library warnings, no P2 diagnostics; formatting and P1 protected-file checks pass.",
+          "evidence_path": "build-check.json",
+          "checked_at": "2026-10-17T18:17:49.001723+00:00",
+          "evidence_sha256": "6c0a2b1b5a0f7a768a3471b31d564b41fe18ee7780ebcd983d7e64dbb18ff5df"
+        },
+        {
+          "check_id": "C005",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "Using the frozen live You.com source packet, the final Rust Nemotron verifier rejects an unsupported real-world causal claim with validated evidence and targeted repair; no second search is needed.",
+          "observed": "Final Rust review reused frozen live sources and blocked unsupported causal/predictive claims with one validated targeted repair; one model call, no additional search, no error.",
+          "evidence_path": "live-unsupported-review.json",
+          "evidence_sha256": "b0b61084ea0cf29ba35208b16630c43b1ba4a05a45d2040adb5bd98d1a65144d",
+          "checked_at": "2026-10-17T18:16:15.501116+00:00"
+        }
+      ]
+    }
+  ]
+}

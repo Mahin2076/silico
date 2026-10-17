@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "project": "Silico P2 independent Nemotron verifier",
+  "as_of": "2026-10-17",
+  "scope": "P2-only immutable experiment verifier, local adversarial tests, and bounded live Nemotron review. Published on p2 for pull-request review; no P1 workflow integration or deployment.",
+  "integrations": [
+    {
+      "integration_id": "I001",
+      "sponsor": "Crusoe Managed Inference / NVIDIA Nemotron",
+      "purpose": "Independently review experiment plans and evidence, returning validated pass/repair/blocked decisions and stable targeted repairs.",
+      "docs_url": "https://github.com/crusoecloud/crusoe-developer-hub/tree/main/examples/hackathons/crusoe-cv-recursive-agents-hackathon",
+      "docs_checked_at": "2026-10-17",
+      "implementation_ref": "crates/sim-core/src/verifier/",
+      "env_vars": [
+        "CRUSOE_API_KEY",
+        "SILICO_VERIFIER_MODEL"
+      ],
+      "checks": [
+        {
+          "check_id": "C001",
+          "required": true,
+          "mode": "local",
+          "status": "passed",
+          "expected": "Adversarial contract tests reject missing scenarios, mismatched audiences/context, stale hashes, failed deterministic checks, malformed reviews, invalid evidence/repairs, transport failure, and exhausted budgets.",
+          "observed": "20 verifier tests passed; standalone CLI rejects missing-scenario and audience-mismatch fixtures with zero model calls; explicit fixture pass remains mock.",
+          "evidence_path": "verifier-tests.txt",
+          "evidence_sha256": "f389424a2e30fd4331b41fda4b11294703171615e22be69b36d10f1d725cba33",
+          "checked_at": "2026-10-17T18:00:11.225570+00:00"
+        },
+        {
+          "check_id": "C002",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "The actual Rust verifier calls the selected Nemotron model through Crusoe and returns a fully validated review for a labeled synthetic fixture; no silent fixture fallback.",
+          "observed": "Actual Rust direct Crusoe/Nemotron review passed the complete final fixture; one live call, all required findings pass, no repairs or errors.",
+          "evidence_path": "live-complete-final.json",
+          "evidence_sha256": "a217b22b296e77009cbac4526067818ebcb0a1989c5aa8a692448b603653d23c",
+          "checked_at": "2026-10-17T18:00:34.295671+00:00"
+        },
+        {
+          "check_id": "C003",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "The live verifier rejects a deliberately unsupported real-world conclusion and supplies a valid targeted repair.",
+          "observed": "Actual live Nemotron review blocked an unsupported causal/predictive claim and returned two validated targeted repairs; no transport or response-validation error.",
+          "evidence_path": "live-unsupported-openshell.json",
+          "evidence_sha256": "ec1f6787e938a6fcdf48b54b6f674e44eb8b4dba0325eeb99b20715fce734c0e",
+          "checked_at": "2026-10-17T18:00:35.359401+00:00"
+        },
+        {
+          "check_id": "C004",
+          "required": true,
+          "mode": "local",
+          "status": "passed",
+          "expected": "Backend regression checks and required build checks complete, with unrelated environmental failures reported accurately.",
+          "observed": "Final workspace tests: 210 passed, zero failed; release validate and P2 example builds passed. Strict Clippy is blocked by pre-existing backend lint issues; P2 has no warnings with that baseline deny lint allowed.",
+          "checked_at": "2026-10-17T18:03:52.783430+00:00",
+          "evidence_path": "build-check.json",
+          "evidence_sha256": "e654929f57f2ddab820334952b1d11edfcf299c08223993115fe63ec4f3eb8b9"
+        }
+      ]
+    },
+    {
+      "integration_id": "I002",
+      "sponsor": "NVIDIA NemoClaw / OpenShell",
+      "purpose": "Run the verifier request inside an existing sandbox through its managed Crusoe inference route, without loading an API credential into the verifier process.",
+      "docs_url": "https://docs.nvidia.com/nemoclaw/latest/user-guide/openclaw/get-started/quickstart.md",
+      "docs_checked_at": "2026-10-17",
+      "implementation_ref": "crates/sim-core/src/verifier/sandbox.rs",
+      "env_vars": [
+        "SILICO_VERIFIER_MODEL"
+      ],
+      "checks": [
+        {
+          "check_id": "C005",
+          "required": true,
+          "mode": "live",
+          "status": "passed",
+          "expected": "The actual Rust sandbox transport executes the fixed Python bridge inside the Ready simtra sandbox; Nemotron returns a validated rejection of an unsupported conclusion, with no Crusoe key in the Rust process environment.",
+          "observed": "Actual Rust fixed bridge executed inside simtra through managed Crusoe/Nemotron inference; API-key environment absent; expected blocked verdict and two repairs.",
+          "evidence_path": "sandbox-check.json",
+          "evidence_sha256": "c88afe2b027a91a952aaf4292f0ebe6461fd620086b33d548521a51e43328922",
+          "checked_at": "2026-10-17T18:00:35.361686+00:00"
+        }
+      ]
+    }
+  ]
+}
