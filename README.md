@@ -116,3 +116,61 @@ Open a pull request from each branch into `main`. Merge the verifier first, then
 ## Built by
 
 Mahin Bharathwaj.
+
+
+## Shared Brain: proposed extension
+
+Research agents gather information about housing, transit, and local policies, then write their findings into a common memory that simulated residents consult when making decisions. Findings include sources and dates; verified corrections supersede outdated facts, while conflicting reports stay flagged until resolved. Residents keep their individual preferences. Compare the same unseen scenarios with and without memory to measure factual accuracy, stale claims, and duplicated research. This addresses Shared Brain: agents read and update shared knowledge, keep it consistent and current, and demonstrate whether sharing it improves results.
+
+This is proposed work, separate from the existing P1/P2 experiment and verifier implementation.
+
+### Branch 1: `shared-memory`
+
+Build the memory system and research agents that maintain it.
+
+- Store findings with an ID, topic, claim, source URL, observation date, effective date, status, and optional superseded finding ID.
+- Have research agents check memory before researching, then submit new evidence.
+- Preserve version history, supersede facts only with supporting evidence, and flag unresolved contradictions.
+- Expose operations to write findings, read accepted facts by topic and scenario date, and inspect history.
+
+**Done when:** one agent publishes a finding, another retrieves it, and a verified correction replaces the current fact while preserving its history. Conflicts remain visible until resolved.
+
+### Branch 2: `simulation-evaluation`
+
+Connect shared knowledge to resident decisions and measure its effect.
+
+- Start with a mock memory adapter so this branch can progress independently.
+- Give residents relevant accepted facts while preserving their profiles and preferences; record the finding IDs used.
+- Add a memory panel showing sources, updates, and unresolved conflicts.
+- Compare memory on/off using the same scenarios, residents, model settings, and research budgets.
+- Evaluate held-out scenarios with known factual answers, including corrections and contradictory reports. Restrict evidence to the scenario date.
+- Report factual accuracy, stale claims, and duplicated research across repeated runs. Evaluate opinion predictions separately when real outcome data exists.
+
+**Done when:** both modes run reproducibly and the comparison reports improvements and regressions without assuming memory always wins.
+
+### Shared memory contract
+
+Agree on this interface before either branch begins:
+
+```ts
+type Finding = {
+  id: string;
+  topic: string;
+  claim: string;
+  sourceUrl: string;
+  observedAt: string; // ISO timestamp
+  effectiveAt: string; // ISO timestamp
+  status: "accepted" | "disputed" | "superseded";
+  supersedesId?: string;
+};
+
+interface CityMemory {
+  write(finding: Finding): Promise<Finding>;
+  read(query: { topic: string; asOf: string }): Promise<Finding[]>;
+  history(topic: string): Promise<Finding[]>;
+}
+```
+
+`read` returns accepted findings known and effective by `asOf`, resolving status and supersession from version history as of that date. `history` includes disputed and superseded versions. Branch 1 implements the contract; Branch 2 uses a mock, then connects the real implementation during integration. These are planned branch names, not branches created by this documentation.
+
+**Development demo:** use one city and one policy. An agent records a January start date, another submits a verified correction to March, and residents use the corrected date. Keep evaluation scenarios separate from this development example.
