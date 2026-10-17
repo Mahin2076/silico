@@ -6,6 +6,11 @@ transport uses `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B` through Crusoe Managed
 Inference. An optional OpenShell transport runs the fixed inference bridge in an
 existing sandbox while provider credentials remain with the gateway.
 
+Optional You.com research gives Nemotron cited outside sources for methodological
+and contextual checks. For example, it can check whether a conclusion confuses a
+simulation with evidence of causation. It supplements the experiment's own results;
+search snippets cannot establish the simulated outcome or real-world accuracy.
+
 This branch contains P2 only. P1's workflow, API, shared model client, `lib.rs`, and
 frontend are unchanged. The example and integration test compile the module by
 path so it is usable before P1 registers it in the library.
@@ -55,6 +60,40 @@ create sandboxes, relax policy, or read `CRUSOE_API_KEY` in this mode. The bridg
 uses fixed argv and stdin JSON; model output never becomes a command. This is
 contained inference execution, not a general research/tool agent.
 
+### Cited research with You.com
+
+Supply `YOU_API_KEY` through your environment or secret manager, alongside the
+credentials for the chosen inference transport. Research runs only when explicitly
+requested with `--research-query`, together with `--live` or `--openshell-bin`:
+
+```sh
+cargo run -p simfrancisco --example p2_verify -- \
+  --input crates/sim-core/src/verifier/fixtures/unsupported-conclusion.json \
+  --live \
+  --research-query 'What limitations apply when inferring causal effects from survey simulations?' \
+  --research-domain census.gov --research-domain nih.gov \
+  --output research-review.json
+```
+
+Choose a query relevant to the experiment and use repeated `--research-domain`
+flags to restrict sources where useful. This mode returns a wrapper containing the
+exact enriched request, cited research, and decision. Existing non-research output
+stays a plain decision. Fixture reviews and `--hash-plan` cannot enable research.
+An absent key, failed search, or unusable evidence does not silently fall back to
+an ungrounded success. In OpenShell mode, You.com search runs on the host and the
+bounded source packet goes to the sandbox; the search key never enters the prompt
+or sandbox.
+
+Research is limited to one search, at most five sources, and a ten-second search
+HTTP deadline (plus at most ten seconds waiting for a shared concurrency slot),
+followed by at most one model call with its normal 35-second deadline.
+Sources are untrusted evidence, not instructions. Search timestamps describe
+retrieval; an unknown publication date cannot prove what was known on the frozen
+experiment's as-of date. Current methodological context must not be presented as
+verified historical facts. Fresh searches are blocked for historical as-of dates
+before any API call; use a contemporaneously recorded source packet for those
+reviews. Retrieval timestamps must not exceed the frozen cutoff.
+
 ## P1 handoff
 
 1. Register `pub mod verifier;` in P1's `lib.rs` when integrating. Reuse one
@@ -70,6 +109,14 @@ contained inference execution, not a general research/tool agent.
    **`decision.permits_completion(&request)`**, never a bare verdict or summary.
    Keep decisions server-owned; these receipts are not cryptographic signatures
    and must not be accepted from untrusted clients as proof of verification.
+   For optional research, create a caller-owned `ResearchQuery` and
+   `YouSearchClient`, then call
+   `verify_with_research(&request, &query, &search).await?`. Preserve the returned
+   `ResearchedVerification` wrapper and use its `permits_completion()` gate. The
+   decision is bound to the wrapper's enriched immutable request; gating against
+   the original request would omit the evidence actually reviewed. Keep the
+   caller's query and domain restrictions with the run so repair rounds cannot
+   silently change the research objective.
 5. P1 executes supported repairs, with at most two repair rounds. Initial review
    uses round 0; rounds 1 and 2 are repairs. A pass at round 2 is allowed; another
    repair becomes blocked. Stable check/scenario IDs make repairs explicit.
@@ -99,12 +146,17 @@ language callers should use Rust's hash helpers as the authority, particularly
 for floating-point JSON serialization. IDs use ASCII letters, digits, `.`, `_`,
 and `-`; `p2.` is reserved for built-in checks.
 
+Optional `web_research` is additive and participates in `request_hash`, including
+the cited source packet. It does not change `plan_hash`: source retrieval adds
+review evidence without rewriting the frozen experiment or resealing its results.
+
 P1 may implement `VerifierTransport` using its shared provider client. It must
 truthfully identify live/mock mode, enforce bounded network work, and return the
 actual selected model identity. Built-in live transports have no fixture fallback.
 No new dependencies, credentials, runtime `.env`, or shared provider edits are
 included in this branch. Direct mode reads `CRUSOE_API_KEY` and optional
-`SILICO_VERIFIER_MODEL`; keys are never put in prompts, receipts, or logs.
+`SILICO_VERIFIER_MODEL`; optional research reads `YOU_API_KEY`. Keys are never put
+in prompts, receipts, or logs.
 
 ## What gets checked
 

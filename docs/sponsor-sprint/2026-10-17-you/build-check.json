@@ -1,0 +1,27 @@
+[
+  {
+    "command": "cargo test --workspace --locked",
+    "checked_at": "2026-10-17T18:15:05.842949+00:00",
+    "exit_code": 0,
+    "evidence_path": "workspace-tests.txt"
+  },
+  {
+    "command": "cargo build --release --bin validate --locked",
+    "checked_at": "2026-10-17T18:16:11.691215+00:00",
+    "exit_code": 0,
+    "evidence_path": "release-build.txt"
+  },
+  {
+    "command": "cargo clippy -p simfrancisco --test verifier --example p2_verify --locked -- -A clippy::absurd_extreme_comparisons",
+    "checked_at": "2026-10-17T18:16:12.278286+00:00",
+    "exit_code": 0,
+    "evidence_path": "clippy.txt"
+  },
+  {
+    "command": "cargo test --workspace --locked",
+    "checked_at": "2026-10-17T18:17:49.000858+00:00",
+    "exit_code": 0,
+    "tests_passed": 219,
+    "evidence_path": "workspace-tests-final.txt"
+  }
+]

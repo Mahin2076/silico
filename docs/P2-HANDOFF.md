@@ -10,6 +10,7 @@ dependencies are unchanged. No deployment is included.
 - Local coverage/context/audience/deterministic gates before paid review.
 - Strictly validated decisions, evidence paths, and targeted repair requests.
 - Bounded direct Crusoe transport and optional OpenShell sandbox transport.
+- Optional You.com search to ground methodological/context checks in cited sources.
 - Adversarial tests, explicit synthetic fixtures, and runnable CLI example.
 - Live positive/negative receipts with separate local/mock/live evidence.
 
@@ -31,3 +32,27 @@ performed on this branch.
 The P2 completion gate accepts a validated live pass only. Mock fixture passes are
 explicitly labeled and cannot grant completion. Receipts bind exact request data;
 keep them server-owned because they are not signed attestations.
+
+## Optional You.com research
+
+Use `verify_with_research(&request, &query, &search).await?` with a caller-owned
+`ResearchQuery` and `YouSearchClient::from_env()`. Keep the returned
+`ResearchedVerification` wrapper and gate with its `permits_completion()`. It
+contains the exact enriched request, source packet, and decision; the original
+request alone does not include the evidence reviewed. Preserve the caller's query
+and domain restrictions across the run. Optional `web_research` changes
+`request_hash`, while the frozen experiment's `plan_hash` stays unchanged.
+
+The CLI enables this explicitly with `--research-query '...'` and repeatable
+`--research-domain example.org`, together with `--live` or `--openshell-bin`.
+`YOU_API_KEY` is read only for that explicit research mode. Plain decision output
+is unchanged; research output is the full wrapper. Search runs on the host even
+when inference uses OpenShell, and provider keys stay out of model input.
+
+The useful role is checking methodological or contextual claims against cited
+outside sources, such as whether simulated survey results support causal claims.
+It does not replace simulated evidence or establish real-world accuracy. Current
+snippets with unknown publication dates cannot prove facts as of the frozen
+experiment date. Budgets are one search, five sources, ten seconds, then at most
+one model call with the normal 35-second verifier deadline. Failures stay explicit;
+there is no silent fallback to a research-free pass.

@@ -1,0 +1,221 @@
+{
+  "findings": [
+    {
+      "check_id": "p2.input_integrity",
+      "evidence": [
+        {
+          "pointer": "/plan"
+        },
+        {
+          "pointer": "/goal"
+        }
+      ],
+      "status": "pass",
+      "summary": "Schema, bounded input, stable IDs, plan hash, round, and frozen context are valid."
+    },
+    {
+      "check_id": "p2.scenario_coverage",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ],
+      "status": "pass",
+      "summary": "Every planned scenario has exactly one complete result."
+    },
+    {
+      "check_id": "p2.context_consistency",
+      "evidence": [
+        {
+          "pointer": "/plan/context"
+        },
+        {
+          "pointer": "/results"
+        }
+      ],
+      "status": "pass",
+      "summary": "All results match the frozen population, model, date, evidence, seed, and plan hash."
+    },
+    {
+      "check_id": "p2.audience_consistency",
+      "evidence": [
+        {
+          "pointer": "/plan/scenarios"
+        },
+        {
+          "pointer": "/results"
+        }
+      ],
+      "status": "pass",
+      "summary": "Result audience IDs match their corresponding scenarios."
+    },
+    {
+      "check_id": "coverage.complete",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ],
+      "status": "pass",
+      "summary": "Labeled fixture: both scenarios contain all two expected archetype answers."
+    },
+    {
+      "check_id": "weights.valid",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ],
+      "status": "pass",
+      "summary": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer."
+    },
+    {
+      "check_id": "p2.deterministic_checks",
+      "evidence": [
+        {
+          "pointer": "/plan/completion_checks"
+        },
+        {
+          "pointer": "/deterministic_findings"
+        }
+      ],
+      "status": "pass",
+      "summary": "Required deterministic findings are present, evidenced, and passing."
+    },
+    {
+      "check_id": "p2.evidence_completeness",
+      "evidence": [
+        {
+          "pointer": "/results"
+        },
+        {
+          "pointer": "/conclusions"
+        }
+      ],
+      "status": "pass",
+      "summary": "Completed results contain payloads and conclusions are available for review."
+    },
+    {
+      "check_id": "p2.web_sources",
+      "evidence": [
+        {
+          "pointer": "/web_research"
+        }
+      ],
+      "status": "pass",
+      "summary": "You.com sources have bounded, dated provenance and match the frozen evidence cutoff. Undated pages are background only."
+    },
+    {
+      "check_id": "p2.goal_alignment",
+      "evidence": [
+        {
+          "pointer": "/goal"
+        },
+        {
+          "pointer": "/plan/scenarios/0/description"
+        },
+        {
+          "pointer": "/plan/scenarios/1/description"
+        },
+        {
+          "pointer": "/plan/scenarios/0/inputs"
+        },
+        {
+          "pointer": "/plan/scenarios/1/inputs"
+        }
+      ],
+      "status": "pass",
+      "summary": "Scenarios compare message A and B for the same frozen adult audience with binary yes/no framing, matching the goal."
+    },
+    {
+      "check_id": "p2.explicit_assumptions",
+      "evidence": [
+        {
+          "pointer": "/plan/assumptions/0"
+        },
+        {
+          "pointer": "/plan/assumptions/1"
+        }
+      ],
+      "status": "pass",
+      "summary": "Assumptions explicitly state the fixture tests software behavior only, is not an observed survey, and uses equal weight for archetypes."
+    },
+    {
+      "check_id": "p2.conclusion_support",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        },
+        {
+          "pointer": "/results/0/payload/weighted_yes_share"
+        },
+        {
+          "pointer": "/results/1/payload/weighted_yes_share"
+        }
+      ],
+      "status": "blocked",
+      "summary": "Conclusion claims causal impact and guaranteed predictive accuracy for real residents, which is unsupported by synthetic results showing only 0.6 vs 0.65 weighted yes share."
+    },
+    {
+      "check_id": "decision.caveat",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        },
+        {
+          "pointer": "/plan/completion_checks/2/id"
+        }
+      ],
+      "status": "blocked",
+      "summary": "Conclusion claims real-world public support and causal impact, violating the requirement to report as a labeled software fixture without such claims."
+    },
+    {
+      "check_id": "p2.web_grounding",
+      "evidence": [
+        {
+          "pointer": "/conclusions/0"
+        },
+        {
+          "pointer": "/plan/assumptions"
+        },
+        {
+          "pointer": "/web_research/sources"
+        }
+      ],
+      "status": "blocked",
+      "summary": "No web sources are cited in the conclusion or assumptions; sources discuss disclosure standards but are not used to support any claim."
+    }
+  ],
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "receipt": {
+    "elapsed_ms": 10348,
+    "error_code": null,
+    "mode": "live",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "model_calls": 1,
+    "prompt_version": "silico-p2-verifier-v2-web",
+    "provider": "crusoe-managed-inference"
+  },
+  "repair_requests": [
+    {
+      "action": "revise_plan",
+      "check_ids": [
+        "p2.conclusion_support",
+        "decision.caveat",
+        "p2.web_grounding"
+      ],
+      "id": "req1",
+      "reason": "Revise conclusion to avoid causal/predictive claims, state it is a software fixture comparison, and cite at least one web source about synthetic data limitations.",
+      "scenario_ids": []
+    }
+  ],
+  "repair_round": 0,
+  "request_hash": "ebed6f21e770cbacf72c38b2cf8dcc61bc5af301a0d90ade27121ef091b7f3d3",
+  "run_id": "p2-fixture-complete",
+  "schema_version": 1,
+  "summary": "The conclusion claims causal impact and guaranteed predictive accuracy for real residents, violating synthetic-data limitations and the decision.caveat check. No sources support causal or real-world claims.",
+  "verdict": "blocked"
+}

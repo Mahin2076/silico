@@ -1,0 +1,222 @@
+{
+  "conclusions": [
+    "This proves message B causes all real San Francisco residents to support the policy, with guaranteed predictive accuracy."
+  ],
+  "deterministic_findings": [
+    {
+      "check_id": "coverage.complete",
+      "detail": "Labeled fixture: both scenarios contain all two expected archetype answers.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ],
+      "passed": true,
+      "scenario_ids": [
+        "message-a",
+        "message-b"
+      ]
+    },
+    {
+      "check_id": "weights.valid",
+      "detail": "Labeled fixture: probability vectors and weighted aggregation were checked by the fixture producer.",
+      "evidence": [
+        {
+          "pointer": "/results"
+        }
+      ],
+      "passed": true,
+      "scenario_ids": [
+        "message-a",
+        "message-b"
+      ]
+    }
+  ],
+  "goal": "Compare synthetic responses to message A and message B for the same frozen adult audience; state which message has the higher modeled support and preserve synthetic-data limitations.",
+  "plan": {
+    "assumptions": [
+      "This labeled synthetic fixture tests software behavior only; it is not an observed survey or evidence of predictive validity.",
+      "Messages are shown to the same frozen synthetic adult audience; every archetype has equal weight in this fixture."
+    ],
+    "completion_checks": [
+      {
+        "description": "All planned archetype answers are present in every completed scenario.",
+        "id": "coverage.complete",
+        "kind": "deterministic",
+        "required": true
+      },
+      {
+        "description": "Probability vectors and weighted aggregation pass P1 deterministic validation.",
+        "id": "weights.valid",
+        "kind": "deterministic",
+        "required": true
+      },
+      {
+        "description": "The conclusion reports the A/B comparison as a labeled software fixture and does not claim real-world public support or causal impact.",
+        "id": "decision.caveat",
+        "kind": "semantic",
+        "required": true
+      }
+    ],
+    "context": {
+      "as_of_date": "2026-10-17",
+      "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+      "model": "fixture-only-no-live-simulation",
+      "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+      "seed": 42
+    },
+    "scenarios": [
+      {
+        "audience_id": "sf-adults-fixture",
+        "description": "Show message A: Save on everyday transit.",
+        "id": "message-a",
+        "inputs": {
+          "audience_filter": {
+            "group": "same frozen adult fixture audience"
+          },
+          "framing": "binary",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "question": "Would this message make you more likely to support the transit proposal?",
+          "stimulus": "Save on everyday transit."
+        }
+      },
+      {
+        "audience_id": "sf-adults-fixture",
+        "description": "Show message B: More reliable transit.",
+        "id": "message-b",
+        "inputs": {
+          "audience_filter": {
+            "group": "same frozen adult fixture audience"
+          },
+          "framing": "binary",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "question": "Would this message make you more likely to support the transit proposal?",
+          "stimulus": "More reliable transit."
+        }
+      }
+    ]
+  },
+  "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+  "repair_round": 0,
+  "results": [
+    {
+      "audience_id": "sf-adults-fixture",
+      "context": {
+        "as_of_date": "2026-10-17",
+        "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+        "model": "fixture-only-no-live-simulation",
+        "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+        "seed": 42
+      },
+      "id": "result-message-a",
+      "payload": {
+        "aggregation_checked_by_p1": true,
+        "fixture": true,
+        "n_archetypes_answered": 2,
+        "n_archetypes_expected": 2,
+        "probability_vectors_valid": true,
+        "weighted_yes_share": 0.6
+      },
+      "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+      "scenario_id": "message-a",
+      "status": "complete"
+    },
+    {
+      "audience_id": "sf-adults-fixture",
+      "context": {
+        "as_of_date": "2026-10-17",
+        "evidence_hash": "f1f93373280ed4744c38fc259f7315ed2d9873b6d071a72c455b3a108d6aa067",
+        "model": "fixture-only-no-live-simulation",
+        "population_hash": "0469d3061c42269811722afe98df205faa8353dc1e567e6e933ff77498e1cb5c",
+        "seed": 42
+      },
+      "id": "result-message-b",
+      "payload": {
+        "aggregation_checked_by_p1": true,
+        "fixture": true,
+        "n_archetypes_answered": 2,
+        "n_archetypes_expected": 2,
+        "probability_vectors_valid": true,
+        "weighted_yes_share": 0.65
+      },
+      "plan_hash": "4d4fb67c8e40f6479cbead2c418d7f568118bf7b9d8f0bc61b8c9273409d35ef",
+      "scenario_id": "message-b",
+      "status": "complete"
+    }
+  ],
+  "run_id": "p2-fixture-complete",
+  "schema_version": 1,
+  "web_research": {
+    "as_of_date": "2026-10-17",
+    "error_code": null,
+    "fetched_at": "2026-10-17T18:14:27.261706+00:00",
+    "mode": "live",
+    "provider": "you.com",
+    "query": {
+      "include_domains": [
+        "aapor.org"
+      ],
+      "query": "AI synthetic survey respondents limitations validation disclosure"
+    },
+    "search_calls": 1,
+    "sources": [
+      {
+        "id": "web-1",
+        "publication_date": "2022-11-08",
+        "snippets": [
+          "Section III. of the AAPOR Code of Professional Ethics & Practice (April 2021) specifies: III. Standards for Disclosure Broadly defined, research on public opinion can be conducted using a variety of quantitative and qualitative methodologies, depending on the research questions to be addressed and available resources.",
+          "Describe validity checks, where applicable, including but not limited to whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent\u2019s identity or both, and measures to prevent respondents from completing the survey more than once."
+        ],
+        "title": "Disclosure Standards - AAPOR",
+        "url": "https://aapor.org/standards-and-ethics/disclosure-standards/"
+      },
+      {
+        "id": "web-2",
+        "publication_date": "2022-11-03",
+        "snippets": [
+          "What is the Transparency Initiative What is the Transparency Initiative? AAPOR\u2019s Transparency Initiative is designed to promote methodological disclosure through a proactive, educational approach that assists survey organizations in developing simple and efficient means for routinely disclosing the research methods associated with their publicly-released studies.",
+          "Describe validity checks, where applicable, including\u2014but not limited to\u2014whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent\u2019s identity or both, and measures to prevent respondents from completing the survey more than once."
+        ],
+        "title": "AAPOR's Transparency Initiative is ...",
+        "url": "https://aapor.org/standards-and-ethics/transparency-initiative/"
+      },
+      {
+        "id": "web-3",
+        "publication_date": "2026-06-04",
+        "snippets": [
+          "Overview AAPOR believes in upholding the highest standards for our profession, with our members agreeing to abide by the AAPOR Code of Professional Ethics and Practices. Our goals are to support sound and ethical practice in the conduct of survey and public opinion research and in the use of such research for policy- and decision-making in the",
+          "Describe validity checks, where applicable, including but not limited to whether the researcher added attention checks, logic checks, or excluded respondents who straight-lined or completed the survey under a certain time constraint, any screening of content for evidence that it originated from bots or fabricated profiles, re-contacts to confirm that the interview occurred or to verify respondent\u2019s identity or both, and measures to prevent respondents from completing the survey more than once."
+        ],
+        "title": "Standards and Ethics - AAPOR",
+        "url": "https://aapor.org/standards-and-ethics/"
+      },
+      {
+        "id": "web-4",
+        "publication_date": "2026-03-25",
+        "snippets": [
+          "Every five years, AAPOR reviews and proposes amendments to its Code of Professional Ethics and Practices. This continual review ensures the Code not only adequately supports sound and ethical practice in the conduct of public opinion and survey research, but also promotes the informed and appropriate use of research results.",
+          "The revisions make clear that terms such as participants, poll, survey, and surveying are used to describe data collected from human participants; AI\u2011generated or synthetic data are not research participants and must be clearly identified as such. Explicitly addressing AI in ethical responsibilities. Existing ethical obligations (e.g., privacy protection, legal compliance) are extended to research that uses AI, including recognition that AI may increase re\u2011identification risks. Strengthening disclosure requirements overall."
+        ],
+        "title": "Call for Comments: AAPOR Code of Professional Ethics and Practices ...",
+        "url": "https://aapor.org/announcements/call-for-comments-code-of-ethics/"
+      },
+      {
+        "id": "web-5",
+        "publication_date": "2024-11-25",
+        "snippets": [
+          "Best Practices for Using Generative AI for Survey Research Sarah Kelley and Claire Kelley, Child Trends Generative AI \u2013 which can be broadly defined as computer technology that creates content such as text, images or video \u2013 surged into public consciousness with the release of ChatGPT in late 2022.",
+          "When using AI to analyze participant data we must ensure that the data remains secure and that participants are appropriately informed of the potential uses of their data. Researchers should consider if and how to describe the use of AI tools in their survey consent procedures. Researchers should remain aware of the risk of disclosure of sensitive or personally identifying information."
+        ],
+        "title": "Best Practices for Using Generative AI for Survey Research - AAPOR",
+        "url": "https://aapor.org/newsletters/best-practices-for-using-generative-ai-for-survey-research/"
+      }
+    ],
+    "status": "ready"
+  }
+}

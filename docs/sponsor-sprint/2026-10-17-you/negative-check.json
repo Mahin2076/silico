@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-17T18:16:04.352224+00:00",
+  "exit_code": 4,
+  "verdict": "blocked",
+  "receipt": {
+    "elapsed_ms": 10348,
+    "error_code": null,
+    "mode": "live",
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "model_calls": 1,
+    "prompt_version": "silico-p2-verifier-v2-web",
+    "provider": "crusoe-managed-inference"
+  },
+  "repair_count": 1,
+  "search_calls_this_review": 0
+}

@@ -1,0 +1,24 @@
+{
+  "base_commit": "3fee46977a8ce1c2d34112120bbd5dfe483e28ee",
+  "checked_at": "2026-10-17T18:16:30.109837+00:00",
+  "files": {
+    "crates/sim-core/examples/p2_verify.rs": "dbe1eaa9ba41946fa0d85b341920882b2ddc370ac66cff4d5685d00d2a6c7d1d",
+    "crates/sim-core/src/verifier/README.md": "c44047fc3a5279f8495dc2f1e080b4015b98c48ebde4ebcc8610ebb6530b6a43",
+    "crates/sim-core/src/verifier/engine.rs": "920787926520a7c19e2b21d632e2a39f3e28c409eee9b1bb84c0660e76cada9e",
+    "crates/sim-core/src/verifier/fixtures/audience-mismatch.json": "e5545f52aa2a3dafe731eec5a88b72462bc1bce37ed40c685aa6aba162a202d1",
+    "crates/sim-core/src/verifier/fixtures/complete.json": "d739528a8da74e8e0f7c18b3f0702685a06a769d401bd5e28a7a30e4ae0a02a4",
+    "crates/sim-core/src/verifier/fixtures/fixture-review.json": "10aa136f192e8bef2d454095c72952896ecc049682f2122fc27515e7bd26ced4",
+    "crates/sim-core/src/verifier/fixtures/missing-scenario.json": "e2af411c6108dc713f1cc2abc9b497d62df5cea4d911a270da12c41f232bb55c",
+    "crates/sim-core/src/verifier/fixtures/unsupported-conclusion.json": "c820d6a132fc2e786a745af05e3cdea605698f4f7d94a9b9adcb25d6675f5ca4",
+    "crates/sim-core/src/verifier/mod.rs": "2ebd4c4f718a439471a0a96cc8d4282b7228dbfe92e8ac8c50cceab5c0af0bee",
+    "crates/sim-core/src/verifier/prompt.txt": "3784e692a97729795a7e997698d226f27d2830d9d948d0b095d7c105a1485e5d",
+    "crates/sim-core/src/verifier/research.rs": "c3fd0a877ef9571a37a7309cbb85080d3fc38c1e546e013691fc5d6d4a373166",
+    "crates/sim-core/src/verifier/research_tests.rs": "6f49cd99b82a1bc79481c749088f1b87b0d0da2287b0e9eb708ba0f92c393201",
+    "crates/sim-core/src/verifier/sandbox.rs": "f4f291831245a14deaea6700d41ed7d6b126431d5dda6397e101055ed4629e9a",
+    "crates/sim-core/src/verifier/sandbox_bridge.py": "52976704065efdc3d4ac2b597af34dae2986cd7cd2339cbc2aa1f2099f2a7a6d",
+    "crates/sim-core/src/verifier/tests.rs": "05c1f6f00a33c7b7f8429aeb8a6d32137526810f1cb71c84112d8d046766cd7a",
+    "crates/sim-core/src/verifier/transport.rs": "244035c93ad596facd2b10b4a189853fd71262ef62687988b65bc99cfdc4de99",
+    "crates/sim-core/src/verifier/types.rs": "9df81e370e5964c1cce9c3e4355071a80c6f81feb9c4157ae2a80acd257f0e46",
+    "crates/sim-core/tests/verifier.rs": "f16cca5240338ff7c2141451dba25393cc3d7884f73966c028304f7564729f83"
+  }
+}

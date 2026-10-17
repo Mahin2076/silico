@@ -34,6 +34,59 @@ pub struct Verifier<T> {
 }
 
 impl<T: VerifierTransport> Verifier<T> {
+    /// Search only after deterministic preflight passes. Return the exact enriched
+    /// request so P1 can bind completion to both the experiment and its citations.
+    pub async fn verify_with_research(
+        &self,
+        request: &VerificationRequest,
+        query: &ResearchQuery,
+        search: &YouSearchClient,
+    ) -> Result<ResearchedVerification, TransportError> {
+        if request.web_research.is_some() {
+            return Err(TransportError::InvalidConfiguration);
+        }
+        let input = serde_json::to_value(request).expect("typed request serializes");
+        let mut repairs = Vec::new();
+        if invalid_input(request, &input).is_some()
+            || local_checks(request, &input, &mut repairs)
+                .iter()
+                .any(|f| f.status != CheckStatus::Pass)
+        {
+            return Ok(ResearchedVerification {
+                request: request.clone(),
+                decision: self.verify(request).await,
+            });
+        }
+        // Share the verifier's concurrency budget for search as well as inference.
+        // Queue wait is bounded independently; the search HTTP deadline is 10s.
+        let web = match tokio::time::timeout(Duration::from_secs(10), self.permits.acquire()).await
+        {
+            Ok(Ok(permit)) => {
+                let web = search.search(query, &request.plan.context.as_of_date).await;
+                drop(permit);
+                web
+            }
+            _ => WebResearch {
+                provider: "you.com".into(),
+                mode: "live".into(),
+                query: query.clone(),
+                as_of_date: request.plan.context.as_of_date.clone(),
+                fetched_at: chrono::Utc::now().to_rfc3339(),
+                status: "failed".into(),
+                search_calls: 0,
+                error_code: Some("search_queue_timeout".into()),
+                sources: vec![],
+            },
+        };
+        let mut enriched = request.clone();
+        enriched.web_research = Some(web);
+        let decision = self.verify(&enriched).await;
+        Ok(ResearchedVerification {
+            request: enriched,
+            decision,
+        })
+    }
+
     pub fn new(transport: T) -> Self {
         Self::with_limits(transport, VerifierLimits::default()).expect("default limits are valid")
     }
@@ -550,6 +603,13 @@ fn local_checks(
     findings.push(finding(LOCAL_CHECKS[5], evidence_status, if evidence_status == CheckStatus::Pass {
         "Completed results contain payloads and conclusions are available for review."
     } else { "A completed result payload or a conclusion is missing; independent review has no sufficient evidence." }, vec![evidence("/results"), evidence("/conclusions")]));
+    if let Some(web) = &request.web_research {
+        let ready = web.is_ready(&request.plan.context.as_of_date);
+        findings.push(finding("p2.web_sources", if ready { CheckStatus::Pass } else { CheckStatus::Blocked },
+            if ready { "You.com sources have bounded, dated provenance and match the frozen evidence cutoff. Undated pages are background only." }
+            else { "Required web research is unavailable, empty, invalid, or outside the evidence cutoff; Nemotron was not called." },
+            vec![evidence("/web_research")]));
+    }
     findings
 }
 
@@ -566,13 +626,19 @@ fn meaningful(value: &Value) -> bool {
 fn evidence_valid(input: &Value, reference: &EvidenceRef) -> bool {
     let p = &reference.pointer;
     p.len() <= 512
-        && ["/goal", "/plan", "/results", "/conclusions"]
-            .iter()
-            .any(|root| {
-                p == root
-                    || p.strip_prefix(root)
-                        .is_some_and(|tail| tail.starts_with('/'))
-            })
+        && [
+            "/goal",
+            "/plan",
+            "/results",
+            "/conclusions",
+            "/web_research/sources",
+        ]
+        .iter()
+        .any(|root| {
+            p == root
+                || p.strip_prefix(root)
+                    .is_some_and(|tail| tail.starts_with('/'))
+        })
         && input.pointer(p).is_some()
 }
 
@@ -620,6 +686,9 @@ fn semantic_checks(request: &VerificationRequest) -> Vec<(String, String)> {
             .filter(|c| c.required && c.kind == CheckKind::Semantic)
             .map(|c| (c.id.clone(), c.description.clone())),
     );
+    if request.web_research.is_some() {
+        checks.push(("p2.web_grounding".into(), "Check that the retrieved sources are relevant to this experiment's assumptions or external claims and that conclusions represent their evidence faithfully. Cite at least one individual /web_research/sources/N source. Web snippets cannot validate synthetic support percentages or prove real-world causality. Undated snippets are methodological background only; do not use them as evidence of a historical fact or state as of a past date.".into()));
+    }
     checks
 }
 
@@ -645,6 +714,19 @@ fn finish_unreviewed(request: &VerificationRequest, decision: &mut VerificationD
                 vec![],
             ));
         }
+    }
+    if request.web_research.is_some()
+        && !decision
+            .findings
+            .iter()
+            .any(|f| f.check_id == "p2.web_sources")
+    {
+        decision.findings.push(finding(
+            "p2.web_sources",
+            CheckStatus::NotReviewed,
+            "Not reviewed because prerequisite integrity checks failed.",
+            vec![],
+        ));
     }
 }
 
@@ -691,6 +773,24 @@ fn validate_review(
             || (finding.status == CheckStatus::Pass && finding.evidence.is_empty())
         {
             return Err("invalid_review_evidence");
+        }
+        if finding.check_id == "p2.web_grounding"
+            && finding.status == CheckStatus::Pass
+            && !finding.evidence.iter().any(|e| {
+                e.pointer
+                    .strip_prefix("/web_research/sources/")
+                    .is_some_and(|tail| {
+                        let index = tail.split('/').next().unwrap_or("");
+                        index.parse::<usize>().ok().is_some_and(|n| {
+                            request
+                                .web_research
+                                .as_ref()
+                                .is_some_and(|web| n < web.sources.len())
+                        })
+                    })
+            })
+        {
+            return Err("missing_web_source_evidence");
         }
     }
     let expected = if review
