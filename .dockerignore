@@ -27,3 +27,8 @@ rubric.yaml
 *.md
 data/*.aux.xml
 verify_out
+
+!tools/
+!tools/deploy/
+!tools/deploy/demo_gateway.py
+!tools/deploy/cloud_start.py

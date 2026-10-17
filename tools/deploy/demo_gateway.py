@@ -116,12 +116,13 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8090)
     parser.add_argument('--backend-port', type=int, default=8086)
     parser.add_argument('--ledger', required=True)
     args = parser.parse_args()
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
     server.ledger = Ledger(args.ledger)
     server.backend_port = args.backend_port
-    print(f'Demo gateway listening on 127.0.0.1:{args.port}; max {MAX_LIVE_RUNS} live admissions', flush=True)
+    print(f'Demo gateway listening on {args.host}:{args.port}; max {MAX_LIVE_RUNS} live admissions', flush=True)
     server.serve_forever()
