@@ -10,6 +10,7 @@ COPY crates ./crates
 # crates/sim-core/src/lifestyle.rs (../../../data/survey/*.csv), so they must be
 # present in the builder before the build.
 COPY data/survey ./data/survey
+COPY data/provenance ./data/provenance
 RUN cargo build --release -p simfrancisco --bin server
 
 FROM debian:bookworm-slim

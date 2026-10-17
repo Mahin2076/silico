@@ -1,6 +1,6 @@
 # Railway backend
 
-Deploy Mahin2076/silico, branch main, using railway.json and Dockerfile.railway. Keep the frontend on Vercel. Attach one persistent volume at /data before starting the service. Run one replica. Railway supplies RAILWAY_VOLUME_MOUNT_PATH; startup refuses to run without that directory.
+Deploy Mahin2076/silico, branch main, using the Dockerfile builder and Dockerfile.railway. New Railway services no longer accept legacy railway.json configuration; set the builder, Dockerfile path, /health check, and single replica in Railway service settings. Keep the frontend on Vercel. Attach one persistent volume at /data before starting the service. Run one replica. Railway supplies RAILWAY_VOLUME_MOUNT_PATH; startup refuses to run without that directory.
 
 Set server-only variables in Railway: CRUSOE_API_KEY, CRUSOE_MODEL, CRUSOE_REASONING_EFFORT, SILICO_VERIFIER_MODEL, and YOU_API_KEY (use the configured provider variable name). Never commit values. Leave legacy provider credentials and NEWS_API_KEY unset to avoid unbudgeted activity.
 
