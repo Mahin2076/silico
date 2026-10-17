@@ -48,5 +48,34 @@
       ]
     }
   ],
-  "repair_requests": []
+  "repair_requests": [],
+  "claim_assessments": [
+    {
+      "conclusion_index": 0,
+      "kind": "comparison",
+      "status": "pass",
+      "evidence": [
+        {
+          "pointer": "/results/1/payload/weighted_yes_share",
+          "observed": 0.65
+        },
+        {
+          "pointer": "/results/0/payload/weighted_yes_share",
+          "observed": 0.6
+        },
+        {
+          "pointer": "/plan/assumptions/0",
+          "observed": "This labeled synthetic fixture tests software behavior only; it is not an observed survey or evidence of predictive validity."
+        }
+      ],
+      "reasoning": "Fixture B is 0.65 versus A 0.60, a modeled difference of 0.05 or five percentage points. The claim explicitly preserves synthetic-data limits.",
+      "comparison": {
+        "left_pointer": "/results/1/payload/weighted_yes_share",
+        "right_pointer": "/results/0/payload/weighted_yes_share",
+        "relation": "greater",
+        "difference": 0.05
+      }
+    }
+  ],
+  "repair_assessments": []
 }

@@ -533,16 +533,66 @@ impl crate::verifier::VerifierTransport for NativeFixture {
         Box::pin(async move {
             let e: Value = serde_json::from_str(user).unwrap();
             let repair = self.repair && e["repair_round"] == 0;
-            let findings:Vec<_> = e["required_checks"].as_array().unwrap().iter().map(|c| json!({"check_id":c["id"],"status":if repair && c["id"] == "p2.conclusion_support" {"repair"} else {"pass"},"summary":"Software fixture only","evidence":[{"pointer":"/results/0/payload"}]})).collect();
+            let findings: Vec<_> = e["required_checks"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|c| {
+                    let pointer = if c["id"] == "p2.explicit_assumptions" {
+                        "/plan/assumptions/0"
+                    } else if c["id"] == "p2.goal_alignment" {
+                        "/goal"
+                    } else {
+                        "/results/0/payload/receipt/distribution/0/probability"
+                    };
+                    json!({"check_id":c["id"],"status":if repair && c["id"] == "p2.conclusion_support" {"repair"} else {"pass"},"summary":"Software fixture only","evidence":[{"pointer":pointer}]})
+                })
+                .collect();
+            let claims = native_claim_assessments(&e["request"], repair);
             let repairs = if repair {
                 json!([{"id":"repair-1","action":"rerun_scenario","check_ids":["p2.conclusion_support"],"scenario_ids":["s1"],"reason":"Recheck the estimate using the frozen assumptions"}])
             } else {
                 json!([])
             };
-            Ok(crate::verifier::Completion {model:crate::verifier::DEFAULT_MODEL.into(),text:json!({"schema_version":1,"run_id":e["run_id"],"plan_hash":e["plan_hash"],"request_hash":e["request_hash"],"repair_round":e["repair_round"],"verdict":if repair {"repair"} else {"pass"},"summary":"Mock adapter review","findings":findings,"repair_requests":repairs}).to_string()})
+            let repair_assessments = if e["request"]["repair_context"].is_object() {
+                let target = e["request"]["results"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .position(|result| result["scenario_id"] == "s1")
+                    .unwrap();
+                json!([{"repair_id":"repair-1","status":"pass","reasoning":"The targeted scenario s1 estimate changed from 0.5 to 0.7 after applying repair feedback. This is a software repair fixture, not evidence of real-world validity.","evidence":[{"pointer":format!("/results/{target}/payload/receipt/distribution/0/probability")}]}])
+            } else {
+                json!([])
+            };
+            Ok(crate::verifier::Completion {model:crate::verifier::DEFAULT_MODEL.into(),text:json!({"schema_version":1,"run_id":e["run_id"],"plan_hash":e["plan_hash"],"request_hash":e["request_hash"],"repair_round":e["repair_round"],"verdict":if repair {"repair"} else {"pass"},"summary":"Mock adapter review","findings":findings,"repair_requests":repairs,"claim_assessments":claims,"repair_assessments":repair_assessments}).to_string()})
         })
     }
 }
+// Honest synthetic-only reviews for bridge tests. Every modeled-result claim
+// cites the exact numeric receipt leaves; the limitation cites a frozen premise.
+fn native_claim_assessments(request: &Value, repair: bool) -> Vec<Value> {
+    request["conclusions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .enumerate()
+        .map(|(index, _)| {
+            if index == 0 {
+                return json!({"conclusion_index":index,"kind":"limitation","status":"pass","evidence":[{"pointer":"/plan/assumptions/0","observed":request["plan"]["assumptions"][0]}],"reasoning":"Frozen assumptions are illustrative; the conclusion explicitly limits these modeled estimates and makes no real-world accuracy or causal claim.","comparison":null});
+            }
+            let result_index = index - 1;
+            let distribution = request["results"][result_index]["payload"]["receipt"]["distribution"]
+                .as_array().unwrap();
+            let evidence: Vec<_> = distribution.iter().enumerate().map(|(option, value)| {
+                json!({"pointer":format!("/results/{result_index}/payload/receipt/distribution/{option}/probability"),"observed":value["probability"]})
+            }).collect();
+            let requires_repair = repair && request["results"][result_index]["scenario_id"] == "s1";
+            json!({"conclusion_index":index,"kind":"modeled_result","status":if requires_repair {"repair"} else {"pass"},"evidence":evidence,"reasoning":if requires_repair {"Software fixture requests a targeted recheck of s1 against its frozen assumptions."} else {"The displayed percentages are the cited original weighted outcome probabilities multiplied by 100, and are explicitly labeled model estimates."},"comparison":null})
+        })
+        .collect()
+}
+
 fn native_fixture() -> Run {
     let mut r = fixture();
     r.context = json!({"seed":42});
@@ -609,6 +659,48 @@ async fn native_bridge_recomputes_checks_and_rejects_stale_results() {
 }
 
 #[tokio::test]
+async fn native_bridge_rejects_attempt_only_repair_and_preserves_history_binding() {
+    let s = service("http://localhost:1/v1".into(), None);
+    let mut r = native_fixture();
+    r.inject_missing = false;
+    s.store.insert(&r).unwrap();
+    s.execute(&mut r).await.unwrap();
+    let request = super::p2::request(&r).unwrap();
+    assert_eq!(request.repair_round, 0);
+    let verifier = crate::verifier::Verifier::new(NativeFixture { repair: true });
+    let decision = verifier.verify(&request).await;
+    assert_eq!(
+        decision.verdict,
+        crate::verifier::Verdict::Repair,
+        "{}",
+        decision.summary
+    );
+    r.p2_reviews.push(super::p2::Review { request, decision });
+    r.round = 1;
+    // A fresh attempt number is not evidence that the original issue was fixed.
+    r.results
+        .iter_mut()
+        .find(|result| result.scenario_id == "s1")
+        .unwrap()
+        .attempt += 1;
+    let request = super::p2::request(&r).unwrap();
+    assert!(request.repair_context.is_some());
+    let decision = verifier.verify(&request).await;
+    assert_eq!(
+        decision.verdict,
+        crate::verifier::Verdict::Blocked,
+        "{}",
+        decision.summary
+    );
+    assert_eq!(decision.receipt.model_calls, 0);
+    let review = super::p2::Review { request, decision };
+    r.p2_reviews.push(review.clone());
+    // Storing the current review must not change the reconstructed request.
+    let response = super::p2::response(&r, &review).unwrap();
+    assert_eq!(response.verdict, "blocked");
+}
+
+#[tokio::test]
 async fn native_runner_targets_repair_and_persists_every_review() {
     let feedbacks = Arc::new(AtomicUsize::new(0));
     let seen = feedbacks.clone();
@@ -616,11 +708,12 @@ async fn native_runner_targets_repair_and_persists_every_review() {
         let seen = seen.clone();
         async move {
             let input:Value = serde_json::from_str(body["messages"][1]["content"].as_str().unwrap()).unwrap();
-            if input["repair_feedback"].as_array().is_some_and(|a| !a.is_empty()) {
+            let repaired = input["repair_feedback"].as_array().is_some_and(|a| !a.is_empty());
+            if repaired {
                 assert_eq!(input["scenario"]["scenario_id"], "s1");
                 seen.fetch_add(1, Ordering::SeqCst);
             }
-            let answers:Vec<_> = input["archetypes"].as_array().unwrap().iter().map(|g| json!({"archetype_id":g["id"],"probabilities":[0.5,0.5]})).collect();
+            let answers:Vec<_> = input["archetypes"].as_array().unwrap().iter().map(|g| json!({"archetype_id":g["id"],"probabilities":if repaired {[0.7,0.3]} else {[0.5,0.5]}})).collect();
             axum::Json(json!({"choices":[{"message":{"content":json!({"answers":answers}).to_string()}}]}))
         }
     }));
@@ -640,6 +733,12 @@ async fn native_runner_targets_repair_and_persists_every_review() {
     assert_eq!(
         r.p2_reviews[0].request.plan_hash,
         r.p2_reviews[1].request.plan_hash
+    );
+    assert!(r.p2_reviews[1].request.repair_context.is_some());
+    assert!(
+        r.p2_reviews[1].decision.receipt.error_code.is_none(),
+        "{}",
+        r.p2_reviews[1].decision.summary
     );
     assert_eq!(
         r.status, "needs_input",
@@ -738,10 +837,20 @@ async fn verification_retry_is_claimed_once_and_reuses_saved_results() {
     assert_eq!(last.p2_reviews.len(), 1);
     assert_eq!(serde_json::to_value(&last.results).unwrap(), original);
     let persisted_review = &last.p2_reviews[0];
-    assert_eq!(crate::verifier::request_hash(&persisted_review.request), persisted_review.decision.request_hash);
+    assert_eq!(
+        crate::verifier::request_hash(&persisted_review.request),
+        persisted_review.decision.request_hash
+    );
     last.status = "blocked".into();
     last.p2_reviews[0].decision.receipt.error_code = Some("invalid_review_evidence".into());
     assert!(super::p2::can_retry(&last));
+    last.p2_reviews[0].decision.receipt.error_code = Some("claim_observed_mismatch".into());
+    assert!(super::p2::can_retry(&last));
+    last.p2_reviews[0].decision.receipt.error_code = Some("repair_evidence_unchanged".into());
+    assert!(!super::p2::can_retry(&last));
+    last.p2_reviews[0].decision.receipt.error_code = Some("repair_history_binding_mismatch".into());
+    assert!(!super::p2::can_retry(&last));
+    last.p2_reviews[0].decision.receipt.error_code = Some("claim_observed_mismatch".into());
     last.p2_reviews = vec![last.p2_reviews[0].clone(); 3];
     assert!(!super::p2::can_retry(&last));
     task.abort();
